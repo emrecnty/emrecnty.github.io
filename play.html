@@ -2,19 +2,19 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>NES Oyun</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oyun</title>
 <style>
 body{
-margin:0;
-background:black;
+  margin:0;
+  background:black;
 }
 #game{
-width:100%;
-height:100vh;
+  width:100%;
+  height:100vh;
 }
 </style>
 </head>
-
 <body>
 
 <div id="game"></div>
@@ -22,10 +22,12 @@ height:100vh;
 <script>
 const params = new URLSearchParams(location.search);
 const rom = params.get("rom");
+const system = params.get("system");
+const core = params.get("core");
 
 EJS_player = "#game";
-EJS_core = "nes";
-EJS_gameUrl = "https://cdn.jsdelivr.net/gh/emrecnty/emrecnty.github.io@main/roms/nes/" + rom;
+EJS_core = core;
+EJS_gameUrl = "./roms/" + system + "/" + rom;
 EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 </script>
 
