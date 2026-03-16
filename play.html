@@ -2,133 +2,16 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Oyun</title>
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  background: black;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  touch-action: none;
-  font-family: Arial, sans-serif;
+body{
+  margin:0;
+  background:black;
 }
-
-#game {
-  width: 100%;
-  height: 100vh;
-}
-
-/* Telefon için özel kontrol katmanı */
-#touch-controls {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-}
-
-.control-btn {
-  position: absolute;
-  pointer-events: auto;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-  border: 2px solid rgba(255,255,255,0.35);
-  background: rgba(40,40,40,0.45);
-  color: rgba(255,255,255,0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  transition: transform 0.04s ease, background 0.04s ease, border-color 0.04s ease;
-  backdrop-filter: blur(2px);
-}
-
-.control-btn.active {
-  transform: scale(0.94);
-  background: rgba(110,110,110,0.65);
-  border-color: rgba(255,255,255,0.9);
-}
-
-/* D-pad */
-.dpad {
-  position: absolute;
-  left: 22px;
-  bottom: 90px;
-  width: 170px;
-  height: 170px;
-  pointer-events: none;
-}
-
-.dpad .control-btn {
-  pointer-events: auto;
-  width: 58px;
-  height: 58px;
-  border-radius: 14px;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-#up    { left: 56px; top: 0; }
-#left  { left: 0; top: 56px; }
-#right { right: 0; top: 56px; }
-#down  { left: 56px; bottom: 0; }
-
-/* Action buttons */
-#ab-group {
-  position: absolute;
-  right: 22px;
-  bottom: 92px;
-  width: 220px;
-  height: 170px;
-}
-
-#ab-group .round {
-  width: 78px;
-  height: 78px;
-  border-radius: 50%;
-  font-size: 28px;
-}
-
-#btn-b { position: absolute; left: 18px; top: 48px; }
-#btn-a { position: absolute; right: 18px; top: 24px; }
-
-/* Turbo buttons */
-.turbo {
-  position: absolute;
-  width: 84px;
-  height: 44px;
-  border-radius: 14px;
-  font-size: 19px;
-}
-
-#turbo-b { position: absolute; left: 6px; bottom: 0; }
-#turbo-a { position: absolute; right: 0; bottom: 0; }
-
-/* Start / Select */
-.center-buttons {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 88px;
-  display: flex;
-  gap: 14px;
-}
-
-.center-buttons .control-btn {
-  width: 88px;
-  height: 42px;
-  border-radius: 12px;
-  font-size: 16px;
-}
-
-/* Sadece dokunmatik cihazlarda göster */
-@media (hover: hover) and (pointer: fine) {
-  #touch-controls {
-    display: none;
-  }
+#game{
+  width:100%;
+  height:100vh;
 }
 </style>
 </head>
@@ -136,165 +19,19 @@ html, body {
 
 <div id="game"></div>
 
-<div id="touch-controls">
-  <div class="dpad">
-    <div id="up" class="control-btn">▲</div>
-    <div id="left" class="control-btn">◀</div>
-    <div id="right" class="control-btn">▶</div>
-    <div id="down" class="control-btn">▼</div>
-  </div>
-
-  <div id="ab-group">
-    <div id="btn-b" class="control-btn round">B</div>
-    <div id="btn-a" class="control-btn round">A</div>
-    <div id="turbo-b" class="control-btn turbo">TB</div>
-    <div id="turbo-a" class="control-btn turbo">TA</div>
-  </div>
-
-  <div class="center-buttons">
-    <div id="select" class="control-btn">Select</div>
-    <div id="start" class="control-btn">Start</div>
-  </div>
-</div>
-
 <script>
 const params = new URLSearchParams(location.search);
 const rom = params.get("rom");
 const system = params.get("system");
 const core = params.get("core");
 
-/* EmulatorJS */
 EJS_player = "#game";
 EJS_core = core;
 EJS_gameUrl = "./roms/" + system + "/" + rom;
 EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-
-/* Varsayılan dokunmatik kontroller kalsın istemiyorsan şimdilik bunların üstüne kendi katmanımız geliyor. */
 </script>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
-
-<script>
-/* ---- Telefon için özel kontrol sistemi ---- */
-
-/* Burayı istersen sonra değiştiririz */
-const KEYMAP = {
-  up: "ArrowUp",
-  down: "ArrowDown",
-  left: "ArrowLeft",
-  right: "ArrowRight",
-  a: "x",
-  b: "z",
-  start: "Enter",
-  select: "Shift"
-};
-
-const pressed = new Set();
-const turboTimers = {};
-
-function vibrate(ms = 12) {
-  if (navigator.vibrate) navigator.vibrate(ms);
-}
-
-function sendKey(type, key) {
-  const event = new KeyboardEvent(type, {
-    key,
-    bubbles: true,
-    cancelable: true
-  });
-  document.dispatchEvent(event);
-  window.dispatchEvent(event);
-}
-
-function pressKey(key) {
-  if (pressed.has(key)) return;
-  pressed.add(key);
-  sendKey("keydown", key);
-}
-
-function releaseKey(key) {
-  if (!pressed.has(key)) return;
-  pressed.delete(key);
-  sendKey("keyup", key);
-}
-
-function bindHoldButton(id, key, vibration = 12) {
-  const el = document.getElementById(id);
-
-  const start = (e) => {
-    e.preventDefault();
-    el.classList.add("active");
-    vibrate(vibration);
-    pressKey(key);
-  };
-
-  const end = (e) => {
-    e.preventDefault();
-    el.classList.remove("active");
-    releaseKey(key);
-  };
-
-  el.addEventListener("touchstart", start, { passive: false });
-  el.addEventListener("touchend", end, { passive: false });
-  el.addEventListener("touchcancel", end, { passive: false });
-
-  /* İstersen fareyle de test edebil */
-  el.addEventListener("mousedown", start);
-  el.addEventListener("mouseup", end);
-  el.addEventListener("mouseleave", end);
-}
-
-function turboTap(key) {
-  sendKey("keydown", key);
-  setTimeout(() => sendKey("keyup", key), 25);
-}
-
-function bindTurboButton(id, key) {
-  const el = document.getElementById(id);
-
-  const start = (e) => {
-    e.preventDefault();
-    el.classList.add("active");
-    vibrate(10);
-    if (turboTimers[id]) return;
-    turboTap(key);
-    turboTimers[id] = setInterval(() => turboTap(key), 70);
-  };
-
-  const end = (e) => {
-    e.preventDefault();
-    el.classList.remove("active");
-    clearInterval(turboTimers[id]);
-    turboTimers[id] = null;
-  };
-
-  el.addEventListener("touchstart", start, { passive: false });
-  el.addEventListener("touchend", end, { passive: false });
-  el.addEventListener("touchcancel", end, { passive: false });
-
-  el.addEventListener("mousedown", start);
-  el.addEventListener("mouseup", end);
-  el.addEventListener("mouseleave", end);
-}
-
-/* D-pad: her yön ayrı buton, sürükleme yok */
-bindHoldButton("up", KEYMAP.up);
-bindHoldButton("down", KEYMAP.down);
-bindHoldButton("left", KEYMAP.left);
-bindHoldButton("right", KEYMAP.right);
-
-/* A/B */
-bindHoldButton("btn-a", KEYMAP.a);
-bindHoldButton("btn-b", KEYMAP.b);
-
-/* Start/Select */
-bindHoldButton("start", KEYMAP.start, 8);
-bindHoldButton("select", KEYMAP.select, 8);
-
-/* Turbo */
-bindTurboButton("turbo-a", KEYMAP.a);
-bindTurboButton("turbo-b", KEYMAP.b);
-</script>
 
 </body>
 </html>
