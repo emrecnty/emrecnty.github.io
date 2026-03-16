@@ -2,20 +2,51 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NES Oyunları</title>
 <style>
 body{
-background:#111;
-color:white;
-font-family:Arial,sans-serif;
-padding:20px;
+  background:#111;
+  color:white;
+  font-family:Arial,sans-serif;
+  margin:0;
+  padding:20px;
 }
-a{
-display:block;
-color:#4da3ff;
-margin:12px 0;
-font-size:20px;
-text-decoration:none;
+h1{
+  margin-top:0;
+}
+#search{
+  width:100%;
+  max-width:500px;
+  padding:12px;
+  border-radius:8px;
+  border:none;
+  font-size:16px;
+  margin-bottom:20px;
+}
+#status{
+  margin-bottom:15px;
+  color:#bbb;
+}
+.games{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.game-link{
+  display:block;
+  background:#1e1e1e;
+  color:#4da3ff;
+  text-decoration:none;
+  padding:14px;
+  border-radius:10px;
+  font-size:18px;
+}
+.game-link:hover{
+  background:#2a2a2a;
+}
+.hidden{
+  display:none;
 }
 </style>
 </head>
@@ -23,9 +54,77 @@ text-decoration:none;
 
 <h1>NES Oyunları</h1>
 
-<a href="play.html?rom=super_mario_bros.nes">Super Mario Bros</a>
-<a href="play.html?rom=contra.nes">Contra</a>
-<a href="play.html?rom=bomberman.nes">Bomberman</a>
+<input id="search" type="text" placeholder="Oyun ara...">
+<div id="status">Oyunlar yükleniyor...</div>
+<div id="games" class="games"></div>
+
+<script>
+const owner = "emrecnty";
+const repo = "emrecnty.github.io";
+const folder = "roms/nes";
+const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${folder}`;
+
+const gamesContainer = document.getElementById("games");
+const statusEl = document.getElementById("status");
+const searchEl = document.getElementById("search");
+
+function formatGameName(filename){
+  return filename
+    .replace(/\.nes$/i, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+let allGames = [];
+
+function renderGames(filterText = ""){
+  gamesContainer.innerHTML = "";
+
+  const filtered = allGames.filter(game =>
+    game.title.toLowerCase().includes(filterText.toLowerCase())
+  );
+
+  if(filtered.length === 0){
+    statusEl.textContent = "Eşleşen oyun bulunamadı.";
+    return;
+  }
+
+  statusEl.textContent = `${filtered.length} oyun gösteriliyor.`;
+
+  for(const game of filtered){
+    const link = document.createElement("a");
+    link.className = "game-link";
+    link.href = `play.html?rom=${encodeURIComponent(game.file)}`;
+    link.textContent = game.title;
+    gamesContainer.appendChild(link);
+  }
+}
+
+fetch(apiUrl)
+  .then(response => {
+    if(!response.ok) throw new Error("Oyun listesi alınamadı.");
+    return response.json();
+  })
+  .then(files => {
+    allGames = files
+      .filter(file => file.type === "file" && file.name.toLowerCase().endsWith(".nes"))
+      .map(file => ({
+        file: file.name,
+        title: formatGameName(file.name)
+      }))
+      .sort((a, b) => a.title.localeCompare(b.title, "tr"));
+
+    renderGames();
+  })
+  .catch(error => {
+    statusEl.textContent = "Oyun listesi yüklenemedi.";
+    console.error(error);
+  });
+
+searchEl.addEventListener("input", () => {
+  renderGames(searchEl.value);
+});
+</script>
 
 </body>
 </html>
