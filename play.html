@@ -30,15 +30,15 @@ EJS_core = core;
 EJS_gameUrl = "./roms/" + system + "/" + rom;
 EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 
-/* Sadece NES için özel mobil düzen */
+/* NES için daha belirgin mobil düzen */
 if (system === "nes") {
   EJS_controlScheme = "nes";
   EJS_VirtualGamepadSettings = [
     {
       type: "dpad",
       location: "left",
-      left: "18%",
-      top: "48%",
+      left: "26%",
+      top: "40%",
       joystickInput: false,
       inputValues: [4, 5, 6, 7]
     },
@@ -47,10 +47,10 @@ if (system === "nes") {
       text: "B",
       id: "b",
       location: "right",
-      right: 130,
-      top: 210,
+      left: 110,
+      top: 10,
       bold: true,
-      fontSize: 34,
+      fontSize: 46,
       input_value: 8
     },
     {
@@ -58,10 +58,10 @@ if (system === "nes") {
       text: "A",
       id: "a",
       location: "right",
-      right: 28,
-      top: 185,
+      left: 10,
+      top: 70,
       bold: true,
-      fontSize: 34,
+      fontSize: 46,
       input_value: 0
     },
     {
@@ -69,9 +69,9 @@ if (system === "nes") {
       text: "Select",
       id: "select",
       location: "center",
-      left: -12,
-      top: 42,
-      fontSize: 16,
+      left: -18,
+      top: 36,
+      fontSize: 18,
       block: true,
       input_value: 2
     },
@@ -80,9 +80,9 @@ if (system === "nes") {
       text: "Start",
       id: "start",
       location: "center",
-      left: 78,
-      top: 42,
-      fontSize: 16,
+      left: 88,
+      top: 36,
+      fontSize: 18,
       block: true,
       input_value: 3
     }
