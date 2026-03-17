@@ -29,18 +29,6 @@ EJS_player = "#game";
 EJS_core = core;
 EJS_gameUrl = "./roms/" + system + "/" + rom;
 EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-</script>
-
-<script>
-const params = new URLSearchParams(location.search);
-const rom = params.get("rom");
-const system = params.get("system");
-const core = params.get("core");
-
-EJS_player = "#game";
-EJS_core = core;
-EJS_gameUrl = "./roms/" + system + "/" + rom;
-EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 
 /* Sadece NES için özel mobil düzen */
 if (system === "nes") {
@@ -101,8 +89,8 @@ if (system === "nes") {
   ];
 }
 </script>
+
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
-  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 <script>
 document.addEventListener("touchstart", function() {
@@ -111,5 +99,6 @@ document.addEventListener("touchstart", function() {
   }
 }, {passive:true});
 </script>
+
 </body>
 </html>
