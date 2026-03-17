@@ -4,22 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Oyun</title>
+
 <style>
 body{
   margin:0;
   background:black;
 }
+
 #game{
   width:100%;
   height:100vh;
 }
 </style>
 </head>
+
 <body>
 
 <div id="game"></div>
 
 <script>
+
 const params = new URLSearchParams(location.search);
 const rom = params.get("rom");
 const system = params.get("system");
@@ -30,64 +34,6 @@ EJS_core = core;
 EJS_gameUrl = "./roms/" + system + "/" + rom;
 EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 
-/* NES için daha belirgin mobil düzen */
-if (system === "nes") {
-  EJS_controlScheme = "nes";
-  EJS_VirtualGamepadSettings = [
-    {
-      type: "dpad",
-      location: "left",
-      left: "40%",
-      top: "60%",
-      joystickInput: false,
-      inputValues: [4, 5, 6, 7]
-    },
-    {
-      type: "button",
-      text: "B",
-      id: "b",
-      location: "right",
-      left: 110,
-      top: 10,
-      bold: true,
-      fontSize: 46,
-      input_value: 8
-    },
-    {
-      type: "button",
-      text: "A",
-      id: "a",
-      location: "right",
-      left: 10,
-      top: 70,
-      bold: true,
-      fontSize: 46,
-      input_value: 0
-    },
-    {
-      type: "button",
-      text: "Select",
-      id: "select",
-      location: "center",
-      left: -18,
-      top: 36,
-      fontSize: 18,
-      block: true,
-      input_value: 2
-    },
-    {
-      type: "button",
-      text: "Start",
-      id: "start",
-      location: "center",
-      left: 88,
-      top: 36,
-      fontSize: 18,
-      block: true,
-      input_value: 3
-    }
-  ];
-}
 </script>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
