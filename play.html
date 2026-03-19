@@ -39,13 +39,42 @@ EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 <script>
-const params = new URLSearchParams(location.search);
-const system = params.get("system");
 
-if(system === "mame"){
-  setTimeout(function(){
-    document.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter"}));
-  },100);
+<script>
+if (system === "mame") {
+  let tries = 0;
+
+  function pressEnter() {
+    const down = new KeyboardEvent("keydown", {
+      key: "Enter",
+      code: "Enter",
+      keyCode: 13,
+      which: 13,
+      bubbles: true
+    });
+
+    const up = new KeyboardEvent("keyup", {
+      key: "Enter",
+      code: "Enter",
+      keyCode: 13,
+      which: 13,
+      bubbles: true
+    });
+
+    window.dispatchEvent(down);
+    document.dispatchEvent(down);
+
+    setTimeout(() => {
+      window.dispatchEvent(up);
+      document.dispatchEvent(up);
+    }, 20);
+  }
+
+  const interval = setInterval(() => {
+    pressEnter();
+    tries++;
+    if (tries > 40) clearInterval(interval);
+  }, 50);
 }
 </script>
 
