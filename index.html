@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retro Oyunlar</title>
+  <style>
+    body{
+      background:#111;
+      color:white;
+      font-family:Arial,sans-serif;
+      margin:0;
+      padding:20px;
+    }
+
+    h1{
+      margin-top:0;
+      margin-bottom:20px;
+    }
+
+    .systems{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+    }
+
+    .system-btn{
+      background:#222;
+      border:none;
+      color:white;
+      padding:10px 18px;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    .system-btn.active{
+      background:#4da3ff;
+    }
+
+    #search{
+      width:100%;
+      max-width:500px;
+      padding:12px;
+      border-radius:8px;
+      border:none;
+      font-size:16px;
+      margin-bottom:20px;
+      box-sizing:border-box;
+    }
+
+    #status{
+      margin-bottom:15px;
+      color:#bbb;
+    }
+
+    .games{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:15px;
+    }
+
+    .game-card{
+      display:block;
+      background:#1e1e1e;
+      border-radius:12px;
+      overflow:hidden;
+      position:relative;
+      transition:all 0.3s;
+      box-shadow:0 4px 10px rgba(0,0,0,0.5);
+      text-decoration:none;
+      color:white;
+    }
+
+    .game-card:hover{
+      transform:scale(1.05);
+      box-shadow:0 8px 20px rgba(77,163,255,0.3);
+    }
+
+    .game-card img{
+      width:100%;
+      height:280px;
+      object-fit:cover;
+      display:block;
+      background:#222;
+    }
+
+    .game-info{
+      padding:12px;
+      text-align:center;
+      background:rgba(0,0,0,0.7);
+      position:absolute;
+      bottom:0;
+      left:0;
+      right:0;
+    }
+
+    .game-info h3{
+      margin:0;
+      font-size:18px;
+      color:#4da3ff;
+      word-break:break-word;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 Retro Oyunlar</h1>
+
+  <div class="systems">
+    <button class="system-btn active" data-system="nes">NES</button>
+    <button class="system-btn" data-system="snes">SNES</button>
+    <button class="system-btn" data-system="genesis">GENESIS</button>
+    <button class="system-btn" data-system="mame">MAME</button>
+  </div>
+
+  <input id="search" type="text" placeholder="Oyun ara...">
+  <div id="status">Oyunlar yükleniyor...</div>
+  <div id="games" class="games"></div>
+
+  <script>
+    const owner = "emrecnty";
+    const repo = "emrecnty.github.io";
+
+    const systemConfig = {
+      nes: {
+        folder: "roms/nes",
+        ext: ".nes",
+        core: "fceumm",
+        thumbFolder: "Nintendo - Nintendo Entertainment System"
+      },
+      snes: {
+        folder: "roms/snes",
+        ext: ".sfc",
+        core: "snes9x",
+        thumbFolder: "Nintendo - Super Nintendo Entertainment System"
+      },
+      genesis: {
+        folder: "roms/genesis",
+        ext: ".gen",
+        core: "genesis_plus_gx",
+        thumbFolder: "Sega - Mega Drive - Genesis"
+      },
+      mame: {
+        folder: "roms/mame",
+        ext: ".zip",
+        core: "mame2003_plus",
+        thumbFolder: "MAME",
+        namesFile: "data/names/mame.json"
+      }
+    };
+
+    let currentSystem = "nes";
+    let allGames = [];
+    let mameNamesMap = null;
+
+    const gamesContainer = document.getElementById("games");
+    const statusEl = document.getElementById("status");
+    const searchEl = document.getElementById("search");
+    const systemButtons = document.querySelectorAll(".system-btn");
+
+    function stripExtension(filename, ext) {
+      return filename.replace(new RegExp(ext.replace(".", "\\.") + "$", "i"), "");
+    }
+
+    function formatDisplayNameFromFile(filename, ext) {
+      return stripExtension(filename, ext)
+        .replace(/_/g, " ")
+        .replace(/\./g, " ")
+        .replace(/-/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function getThumbUrl(system, folderName, gameTitle) {
+      const cfg = systemConfig[system];
+      return `https://thumbnails.libretro.com/${encodeURIComponent(cfg.thumbFolder)}/${folderName}/${encodeURIComponent(gameTitle)}.png`;
+    }
+
+    function createGameImage(system, imageTitle) {
+      const img = document.createElement("img");
+      const snapUrl = getThumbUrl(system, "Named_Snaps", imageTitle);
+      const boxartUrl = getThumbUrl(system, "Named_Boxarts", imageTitle);
+
+      img.src = snapUrl;
+      img.alt = imageTitle;
+      img.loading = "lazy";
+
+      img.onerror = function() {
+        if (img.dataset.step !== "boxart") {
+          img.dataset.step = "boxart";
+          img.src = boxartUrl;
+        } else {
+          img.onerror = null;
+          img.src = "https://placehold.co/200x280/222/fff?text=No+Image";
+        }
+      };
+
+      return img;
+    }
+
+    function buildMameNamesMap(data) {
+      const map = new Map();
+
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          if (!item) continue;
+          const rom = String(item.rom || "").toLowerCase().trim();
+          const name = String(item.name || "").trim();
+
+          if (rom && name) {
+            map.set(rom, name);
+          }
+        }
+      } else if (data && typeof data === "object") {
+        for (const key in data) {
+          const value = data[key];
+          if (key && value) {
+            map.set(String(key).toLowerCase(), String(value).trim());
+          }
+        }
+      }
+
+      return map;
+    }
+
+    async function loadMameNames() {
+      if (mameNamesMap) return mameNamesMap;
+
+      const response = await fetch(systemConfig.mame.namesFile + "?v=" + Date.now());
+      if (!response.ok) {
+        throw new Error("mame.json yüklenemedi");
+      }
+
+      const data = await response.json();
+      mameNamesMap = buildMameNamesMap(data);
+      return mameNamesMap;
+    }
+
+    function getGameData(system, fileName, ext, mameMap = null) {
+      const baseName = stripExtension(fileName, ext);
+
+      if (system === "mame") {
+        const realName = mameMap?.get(baseName.toLowerCase()) || formatDisplayNameFromFile(fileName, ext);
+
+        return {
+          title: realName,
+          imageTitle: realName
+        };
+      }
+
+      const normalName = formatDisplayNameFromFile(fileName, ext);
+
+      return {
+        title: normalName,
+        imageTitle: baseName
+      };
+    }
+
+    function renderGames(filterText = "") {
+      gamesContainer.innerHTML = "";
+
+      const filtered = allGames.filter(game =>
+        game.title.toLowerCase().includes(filterText.toLowerCase())
+      );
+
+      if (filtered.length === 0) {
+        statusEl.textContent = "Eşleşen oyun bulunamadı.";
+        return;
+      }
+
+      statusEl.textContent = `${filtered.length} oyun gösteriliyor.`;
+
+      for (const game of filtered) {
+        const card = document.createElement("a");
+        card.className = "game-card";
+        card.href = `play.html?system=${encodeURIComponent(currentSystem)}&core=${encodeURIComponent(game.core)}&rom=${encodeURIComponent(game.file)}`;
+
+        const img = createGameImage(currentSystem, game.imageTitle);
+
+        const info = document.createElement("div");
+        info.className = "game-info";
+        info.innerHTML = `<h3>${game.title}</h3>`;
+
+        card.appendChild(img);
+        card.appendChild(info);
+        gamesContainer.appendChild(card);
+      }
+    }
+
+    async function loadGames(system) {
+      currentSystem = system;
+      searchEl.value = "";
+      gamesContainer.innerHTML = "";
+      statusEl.textContent = "Oyunlar yükleniyor...";
+
+      const config = systemConfig[system];
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${config.folder}?v=${Date.now()}`;
+
+      try {
+        let mameMap = null;
+
+        if (system === "mame") {
+          mameMap = await loadMameNames();
+        }
+
+        const filesResponse = await fetch(apiUrl);
+
+        if (!filesResponse.ok) {
+          throw new Error("ROM listesi alınamadı");
+        }
+
+        const files = await filesResponse.json();
+
+        allGames = files
+          .filter(file => file.type === "file" && file.name.toLowerCase().endsWith(config.ext))
+          .map(file => {
+            const gameData = getGameData(system, file.name, config.ext, mameMap);
+
+            return {
+              file: file.name,
+              title: gameData.title,
+              imageTitle: gameData.imageTitle,
+              core: config.core
+            };
+          })
+          .sort((a, b) => a.title.localeCompare(b.title, "tr"));
+
+        renderGames();
+      } catch (error) {
+        statusEl.textContent = "Oyun listesi yüklenemedi.";
+        console.error(error);
+      }
+    }
+
+    systemButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        systemButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        loadGames(btn.dataset.system);
+      });
+    });
+
+    searchEl.addEventListener("input", () => {
+      renderGames(searchEl.value);
+    });
+
+    loadGames("nes");
+  </script>
+</body>
+</html>
