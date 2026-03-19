@@ -1,0 +1,95 @@
+{
+  "defaultPlatform": "nes",
+  "platforms": [
+    {
+      "id": "nes",
+      "label": "NES",
+      "romFolder": "roms/nes",
+      "extensions": [".nes"],
+      "core": "nes",
+      "thumbSystem": "Nintendo - Nintendo Entertainment System",
+      "namesFile": "data/names/nes.json"
+    },
+    {
+      "id": "snes",
+      "label": "SNES",
+      "romFolder": "roms/snes",
+      "extensions": [".sfc", ".smc"],
+      "core": "snes",
+      "thumbSystem": "Nintendo - Super Nintendo Entertainment System",
+      "namesFile": "data/names/snes.json"
+    },
+    {
+      "id": "genesis",
+      "label": "GENESIS",
+      "romFolder": "roms/genesis",
+      "extensions": [".gen", ".md", ".bin"],
+      "core": "segaMD",
+      "thumbSystem": "Sega - Mega Drive - Genesis",
+      "namesFile": "data/names/genesis.json"
+    },
+    {
+      "id": "mame",
+      "label": "MAME",
+      "romFolder": "roms/mame",
+      "extensions": [".zip"],
+      "core": "mame",
+      "thumbSystem": "MAME",
+      "namesFile": "data/names/mame.json"
+    },
+    {
+      "id": "psx",
+      "label": "PS1",
+      "romFolder": "roms/psx",
+      "extensions": [".bin", ".cue", ".chd"],
+      "core": "psx",
+      "thumbSystem": "Sony - PlayStation",
+      "namesFile": "data/names/psx.json"
+    },
+    {
+      "id": "gb",
+      "label": "GB",
+      "romFolder": "roms/gb",
+      "extensions": [".gb"],
+      "core": "gb",
+      "thumbSystem": "Nintendo - Game Boy",
+      "namesFile": "data/names/gb.json"
+    },
+    {
+      "id": "gbc",
+      "label": "GBC",
+      "romFolder": "roms/gbc",
+      "extensions": [".gbc"],
+      "core": "gbc",
+      "thumbSystem": "Nintendo - Game Boy Color",
+      "namesFile": "data/names/gbc.json"
+    },
+    {
+      "id": "gba",
+      "label": "GBA",
+      "romFolder": "roms/gba",
+      "extensions": [".gba"],
+      "core": "gba",
+      "thumbSystem": "Nintendo - Game Boy Advance",
+      "namesFile": "data/names/gba.json"
+    },
+    {
+      "id": "gamegear",
+      "label": "GG",
+      "romFolder": "roms/gamegear",
+      "extensions": [".gg"],
+      "core": "segaGG",
+      "thumbSystem": "Sega - Game Gear",
+      "namesFile": "data/names/gamegear.json"
+    },
+    {
+      "id": "mastersystem",
+      "label": "SMS",
+      "romFolder": "roms/mastersystem",
+      "extensions": [".sms"],
+      "core": "segaMS",
+      "thumbSystem": "Sega - Master System - Mark III",
+      "namesFile": "data/names/mastersystem.json"
+    }
+  ]
+}
