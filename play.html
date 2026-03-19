@@ -53,10 +53,8 @@ if(system === "mame"){
   // Emulator yüklenirken birkaç kez daha dene
   let tries = 0;
   const interval = setInterval(()=>{
-    pressOk();
-    tries++;
-    if(tries > 10) clearInterval(interval);
-  },100);
+ document.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter"}));
+},50);
 }
 </script>
 
