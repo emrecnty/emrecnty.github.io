@@ -39,9 +39,14 @@ EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 <script>
-setTimeout(function(){
-  document.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter"}));
-},2000);
+const params = new URLSearchParams(location.search);
+const system = params.get("system");
+
+if(system === "mame"){
+  setTimeout(function(){
+    document.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter"}));
+  },2000);
+}
 </script>
 
 <script>
