@@ -74,6 +74,7 @@ h1{
   <button class="system-btn active" data-system="nes">NES</button>
   <button class="system-btn" data-system="snes">SNES</button>
   <button class="system-btn" data-system="genesis">GENESIS</button>
+  <button class="system-btn" data-system="mame">MAME</button>
 </div>
 
 <input id="search" type="text" placeholder="Oyun ara...">
@@ -99,6 +100,11 @@ const systemConfig = {
     folder: "roms/genesis",
     ext: ".gen",
     core: "segaMD"
+  },
+  mame: {
+    folder: "roms/mame",
+    ext: ".zip",
+    core: "mame"
   }
 };
 
