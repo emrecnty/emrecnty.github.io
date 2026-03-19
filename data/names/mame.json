@@ -1,16 +1,4 @@
 [
- {
-    "rom": "pc_smb",
-    "name": "PlayChoice-10_ Super Mario Bros."
-  },
-   {
-    "rom": "pc_smb2",
-    "name": "PlayChoice-10_ Super Mario Bros. 2"
-  },
-  {
-    "rom": "pc_smb3",
-    "name": "PlayChoice-10_ Super Mario Bros. 3"
-  },
   {
     "rom": "puckman",
     "name": "PuckMan (Japan set 1)"
@@ -2789,7 +2777,7 @@
   },
   {
     "rom": "pc_smb",
-    "name": "PlayChoice-10: Super Mario Bros."
+    "name": "PlayChoice-10_ Super Mario Bros."
   },
   {
     "rom": "pc_vball",
@@ -2909,11 +2897,11 @@
   },
   {
     "rom": "pc_smb2",
-    "name": "PlayChoice-10: Super Mario Bros. 2"
+    "name": "PlayChoice-10_ Super Mario Bros. 2"
   },
   {
     "rom": "pc_smb3",
-    "name": "PlayChoice-10: Super Mario Bros. 3"
+    "name": "PlayChoice-10_ Super Mario Bros. 3"
   },
   {
     "rom": "pc_mman3",
