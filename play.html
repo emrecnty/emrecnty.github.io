@@ -43,18 +43,9 @@ const params = new URLSearchParams(location.search);
 const system = params.get("system");
 
 if(system === "mame"){
-  const pressOk = () => {
+  setTimeout(function(){
     document.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter"}));
-  };
-
-  // Sayfa yüklenir yüklenmez
-  pressOk();
-
-  // Emulator yüklenirken birkaç kez daha dene
-  let tries = 0;
-  const interval = setInterval(()=>{
- document.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter"}));
-},50);
+  },100);
 }
 </script>
 
