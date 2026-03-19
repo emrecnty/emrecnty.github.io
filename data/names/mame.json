@@ -2645,11 +2645,11 @@
   },
   {
     "rom": "mario",
-    "name": "Mario Bros. (US)"
+    "name": "Super Mario Bros. (PlayChoice-10)"
   },
   {
     "rom": "mariojp",
-    "name": "Mario Bros. (Japan)"
+    "name": "Super Mario Bros. (PlayChoice-10)"
   },
   {
     "rom": "masao",
@@ -3149,7 +3149,7 @@
   },
   {
     "rom": "nss_con3",
-    "name": "Nintendo Super System: Contra 3: The Alien Wars"
+    "name": "Nintendo Super System_ Contra 3_ The Alien Wars"
   },
   {
     "rom": "nss_adam",
@@ -3969,7 +3969,7 @@
   },
   {
     "rom": "travrusa",
-    "name": "Traverse USA / Zippy Race"
+    "name": "Traverse USA - Zippy Race"
   },
   {
     "rom": "motorace",
@@ -6113,7 +6113,7 @@
   },
   {
     "rom": "rallybik",
-    "name": "Rally Bike / Dash Yarou"
+    "name": "Rally Bike _ Dash Yarou"
   },
   {
     "rom": "truxton",
@@ -7593,7 +7593,7 @@
   },
   {
     "rom": "19xx",
-    "name": "19XX: The War Against Destiny (US 951207)"
+    "name": "19XX_ The War Against Destiny (US 951207)"
   },
   {
     "rom": "19xxj",
@@ -7861,7 +7861,7 @@
   },
   {
     "rom": "mvscjr1",
-    "name": "Marvel Vs. Capcom: Clash of Super Heroes (Japan 980112)"
+    "name": "Marvel Vs. Capcom_ Clash of Super Heroes (Japan 980112)"
   },
   {
     "rom": "mvsca",
@@ -7917,7 +7917,7 @@
   },
   {
     "rom": "1944",
-    "name": "1944 - The Loop Master (US 000620)"
+    "name": "1944_ The Loop Master (US 000620)"
   },
   {
     "rom": "1944j",
@@ -14937,7 +14937,7 @@
   },
   {
     "rom": "offroadc",
-    "name": "Off Road Challenge"
+    "name": "Off Road Challenge (v1.63)"
   },
   {
     "rom": "wargods",
@@ -15245,7 +15245,7 @@
   },
   {
     "rom": "empcityj",
-    "name": "Empire City: 1931 (Japan)"
+    "name": "Empire City_ 1931 (Japan)"
   },
   {
     "rom": "stfight",
@@ -16101,7 +16101,7 @@
   },
   {
     "rom": "aligator",
-    "name": "Alligator Hunt"
+    "name": "Alligator Hunt (unprotected)"
   },
   {
     "rom": "aligatun",
@@ -18425,7 +18425,7 @@
   },
   {
     "rom": "ssideki2",
-    "name": "Super Sidekicks 2 - The World Championship / Tokuten Ou 2 - real fight football"
+    "name": "Super Sidekicks 2 - The World Championship _ Tokuten Ou 2 - real fight football"
   },
   {
     "rom": "spinmast",
@@ -18481,7 +18481,7 @@
   },
   {
     "rom": "strhoop",
-    "name": "Street Hoop / Street Slam / Dunk Dream"
+    "name": "Street Hoop _ Street Slam _ Dunk Dream"
   },
   {
     "rom": "quizkof",
