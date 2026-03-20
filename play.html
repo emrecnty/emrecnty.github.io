@@ -6,70 +6,85 @@
 <title>Oyun</title>
 
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background: black;
+html,body{
+margin:0;
+padding:0;
+width:100%;
+height:100%;
+background:black;
 }
 
-#game {
-  width: 100%;
-  height: 100vh;
+#game{
+width:100%;
+height:100vh;
+touch-action:none;
 }
 </style>
 </head>
+
 <body>
 
 <div id="game"></div>
 
 <script>
-const params = new URLSearchParams(location.search);
 
-const system = params.get("system");
-const rom = params.get("rom");
+const params=new URLSearchParams(location.search);
 
-let core = "";
+const system=params.get("system");
+const rom=params.get("rom");
 
-switch (system) {
-  case "nes":
-    core = "fceumm";
-    break;
-  case "snes":
-    core = "snes9x";
-    break;
-  case "genesis":
-    core = "genesis_plus_gx";
-    break;
-  case "mame":
-    core = "mame2003_plus";
-    break;
-  default:
-    core = "fceumm";
+let core="";
+
+switch(system){
+
+case "nes":
+core="fceumm";
+break;
+
+case "snes":
+core="snes9x";
+break;
+
+case "genesis":
+core="genesis_plus_gx";
+break;
+
+case "mame":
+core="mame2003_plus";
+break;
+
+default:
+core="fceumm";
+
 }
 
-EJS_player = "#game";
-EJS_core = core;
-EJS_gameUrl = "./roms/" + system + "/" + rom;
-EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+EJS_player="#game";
+EJS_core=core;
+EJS_gameUrl="./roms/"+system+"/"+rom;
+EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
 
-/* Sadece Genesis için gerekli düzeltme */
-if (system === "genesis") {
-  EJS_controlScheme = "segaMD";
+if(system==="genesis"){
+EJS_controlScheme="segaMD";
 }
+
 </script>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 <script>
-const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-if (isMobile && navigator.vibrate) {
-  document.addEventListener("touchstart", function () {
-    navigator.vibrate(60);
-  }, { passive: true });
+const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+if(isMobile && navigator.vibrate){
+
+document.addEventListener("touchstart",function(){
+
+navigator.vibrate(60);
+
+},{passive:true});
+
 }
+
 </script>
 
 </body>
