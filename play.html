@@ -1,90 +1,163 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Oyun</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Retro Oyun - Oynatılıyor</title>
 
-<style>
-html,body{
-margin:0;
-padding:0;
-width:100%;
-min-height:100%;
-background:black;
-}
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      color: #eee;
+      font-family: Arial, Helvetica, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
-#game{
-width:100%;
-min-height:100vh;
-touch-action:manipulation;
-}
-</style>
+    header {
+      background: #1a1a1a;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #333;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      color: #4da3ff;
+    }
+
+    #back-btn {
+      background: #333;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    #back-btn:hover {
+      background: #555;
+    }
+
+    #game-container {
+      flex: 1;
+      position: relative;
+      background: #000;
+    }
+
+    #emulator {
+      width: 100%;
+      height: 100%;
+    }
+
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.8);
+      color: #4da3ff;
+      font-size: 1.5rem;
+      z-index: 10;
+    }
+
+    #error {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.9);
+      color: #ff5555;
+      font-size: 1.3rem;
+      padding: 20px;
+      text-align: center;
+      z-index: 10;
+    }
+  </style>
 </head>
-
 <body>
 
-<div id="game"></div>
+<header>
+  <h1 id="game-title">Oyun Yükleniyor...</h1>
+  <button id="back-btn">← Geri</button>
+</header>
 
-<script>
-
-const params=new URLSearchParams(location.search);
-
-const system=params.get("system");
-const rom=params.get("rom");
-
-let core="";
-
-switch(system){
-
-case "nes":
-core="fceumm";
-break;
-
-case "snes":
-core="snes9x";
-break;
-
-case "genesis":
-core="genesis_plus_gx";
-break;
-
-case "mame":
-core="mame2003_plus";
-break;
-
-default:
-core="fceumm";
-
-}
-
-EJS_player="#game";
-EJS_core=core;
-EJS_gameUrl="./roms/"+system+"/"+rom;
-EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
-
-if(system==="genesis"){
-EJS_controlScheme="segaMD";
-}
-
-</script>
+<div id="game-container">
+  <div id="loading">Oyun yükleniyor, lütfen bekleyin...</div>
+  <div id="error" style="display:none;"></div>
+  <div id="emulator"></div>
+</div>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 <script>
+// URL'den parametreleri al
+const urlParams = new URLSearchParams(window.location.search);
+const system   = urlParams.get("system");
+const rom      = urlParams.get("rom");
 
-const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-if(isMobile && navigator.vibrate){
-
-document.addEventListener("touchstart",function(){
-
-navigator.vibrate(60);
-
-},{passive:true});
-
+if (!system || !rom) {
+  showError("Sistem veya ROM bilgisi eksik!");
 }
 
+// Sistem → core eşleştirmesi (EmulatorJS core isimleri)
+const coreMap = {
+  "nes":     "nes",
+  "snes":    "snes",
+  "genesis": "genesis",
+  "mame":    "mame2003_plus"   // veya mame, mame2010, fbneo gibi alternatifler deneyebilirsin
+  // İstersen daha fazla ekleyebilirsin: gb → "gb", gba → "gba" vs.
+};
+
+const core = coreMap[system.toLowerCase()];
+
+if (!core) {
+  showError(`Bilinmeyen sistem: ${system}`);
+  throw new Error("Desteklenmeyen sistem");
+}
+
+// ROM'un tam URL'si (senin GitHub Pages yapına göre)
+const romBase = "https://emrecnty.github.io/roms/";
+const romUrl  = romBase + system + "/" + encodeURIComponent(rom);
+
+// Başlık için güzel isim
+const cleanName = rom
+  .replace(/\.[^/.]+$/, "")           // uzantıyı sil
+  .replace(/[_\-\.]/g, " ")           // _ - . → boşluk
+  .trim();
+
+document.getElementById("game-title").textContent = cleanName;
+
+// EmulatorJS ayarları
+window.EJS_player        = "#emulator";
+window.EJS_core          = core;
+window.EJS_pathtodata    = "https://cdn.emulatorjs.org/stable/data/";
+window.EJS_gameUrl       = romUrl;
+window.EJS_Buttons       = { playPause: false, restart: true, mute: true, settings: true, fullscreen: true };
+window.EJS_onGameStart   = () => document.getElementById("loading").style.display = "none";
+window.EJS_onGameError   = (err) => showError("Oyun yüklenemedi: " + (err || "Bilinmeyen hata"));
+
+// Geri butonu
+document.getElementById("back-btn").onclick = () => {
+  window.location.href = "index.html";
+};
+
+function showError(msg) {
+  const errDiv = document.getElementById("error");
+  errDiv.textContent = msg;
+  errDiv.style.display = "flex";
+  document.getElementById("loading").style.display = "none";
+}
 </script>
 
 </body>
