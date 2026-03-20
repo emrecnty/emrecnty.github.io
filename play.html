@@ -73,7 +73,7 @@
     #error {
       position: absolute;
       inset: 0;
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
       background: rgba(0,0,0,0.9);
@@ -94,60 +94,61 @@
 
 <div id="game-container">
   <div id="loading">Oyun yükleniyor, lütfen bekleyin...</div>
-  <div id="error" style="display:none;"></div>
+  <div id="error"></div>
   <div id="emulator"></div>
 </div>
 
-<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
-
 <script>
-// URL'den parametreleri al
 const urlParams = new URLSearchParams(window.location.search);
-const system   = urlParams.get("system");
-const rom      = urlParams.get("rom");
+const system = urlParams.get("system");
+const rom = urlParams.get("rom");
 
 if (!system || !rom) {
   showError("Sistem veya ROM bilgisi eksik!");
+  throw new Error("Eksik parametre");
 }
 
-// Sistem → core eşleştirmesi (EmulatorJS core isimleri)
 const coreMap = {
-  "nes":     "nes",
-  "snes":    "snes",
-  "genesis": "genesis",
-  "mame":    "mame2003_plus"   // veya mame, mame2010, fbneo gibi alternatifler deneyebilirsin
-  // İstersen daha fazla ekleyebilirsin: gb → "gb", gba → "gba" vs.
+  nes: "nes",
+  snes: "snes",
+  genesis: "segaMD",
+  mame: "mame2003"
 };
 
 const core = coreMap[system.toLowerCase()];
 
 if (!core) {
-  showError(`Bilinmeyen sistem: ${system}`);
+  showError("Bilinmeyen sistem: " + system);
   throw new Error("Desteklenmeyen sistem");
 }
 
-// ROM'un tam URL'si (senin GitHub Pages yapına göre)
-const romBase = "https://emrecnty.github.io/roms/";
-const romUrl  = romBase + system + "/" + encodeURIComponent(rom);
+const romUrl = "https://emrecnty.github.io/roms/" + system + "/" + encodeURIComponent(rom);
 
-// Başlık için güzel isim
 const cleanName = rom
-  .replace(/\.[^/.]+$/, "")           // uzantıyı sil
-  .replace(/[_\-\.]/g, " ")           // _ - . → boşluk
+  .replace(/\.[^/.]+$/, "")
+  .replace(/[_\-.]/g, " ")
   .trim();
 
 document.getElementById("game-title").textContent = cleanName;
 
-// EmulatorJS ayarları
-window.EJS_player        = "#emulator";
-window.EJS_core          = core;
-window.EJS_pathtodata    = "https://cdn.emulatorjs.org/stable/data/";
-window.EJS_gameUrl       = romUrl;
-window.EJS_Buttons       = { playPause: false, restart: true, mute: true, settings: true, fullscreen: true };
-window.EJS_onGameStart   = () => document.getElementById("loading").style.display = "none";
-window.EJS_onGameError   = (err) => showError("Oyun yüklenemedi: " + (err || "Bilinmeyen hata"));
+window.EJS_player = "#emulator";
+window.EJS_core = core;
+window.EJS_gameUrl = romUrl;
+window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+window.EJS_Buttons = {
+  playPause: false,
+  restart: true,
+  mute: true,
+  settings: true,
+  fullscreen: true
+};
+window.EJS_onGameStart = () => {
+  document.getElementById("loading").style.display = "none";
+};
+window.EJS_onGameError = (err) => {
+  showError("Oyun yüklenemedi: " + (err || "Bilinmeyen hata"));
+};
 
-// Geri butonu
 document.getElementById("back-btn").onclick = () => {
   window.location.href = "index.html";
 };
@@ -159,6 +160,8 @@ function showError(msg) {
   document.getElementById("loading").style.display = "none";
 }
 </script>
+
+<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 </body>
 </html>
