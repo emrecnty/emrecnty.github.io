@@ -1,110 +1,86 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Oyun</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oyun</title>
 
-  <style>
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      overflow: hidden;
-      touch-action: none;
-      overscroll-behavior: none;
-      -webkit-user-select: none;
-      user-select: none;
-    }
+<style>
+html,body{
+margin:0;
+padding:0;
+width:100%;
+height:100%;
+background:black;
+}
 
-    body {
-      position: fixed;
-      inset: 0;
-    }
-
-    #game {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      touch-action: none;
-      outline: none;
-    }
-
-    canvas {
-      touch-action: none !important;
-    }
-  </style>
+#game{
+width:100%;
+height:100vh;
+}
+</style>
 </head>
+
 <body>
 
-<div id="game" tabindex="0"></div>
+<div id="game"></div>
 
 <script>
-  const params = new URLSearchParams(location.search);
 
-  const rom = params.get("rom");
-  const system = params.get("system");
-  const core = params.get("core");
+const params = new URLSearchParams(location.search);
 
-  EJS_player = "#game";
-  EJS_core = core;
-  EJS_gameUrl = "./roms/" + system + "/" + rom;
-  EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+const system = params.get("system");
+const rom = params.get("rom");
 
-  // Kontroller için daha stabil davranış
-  EJS_startOnLoaded = true;
+let core="";
+
+switch(system){
+
+case "nes":
+core="fceumm";
+break;
+
+case "snes":
+core="snes9x";
+break;
+
+case "genesis":
+core="genesis_plus_gx";
+break;
+
+case "mame":
+core="mame2003_plus";
+break;
+
+default:
+core="fceumm";
+}
+
+EJS_player="#game";
+EJS_core=core;
+EJS_gameUrl="./roms/"+system+"/"+rom;
+EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
+
 </script>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 <script>
-  const gameEl = document.getElementById("game");
 
-  function focusGame() {
-    gameEl.focus();
-    window.focus();
-  }
+/* Mobil titreşim */
 
-  window.addEventListener("load", () => {
-    focusGame();
-    setTimeout(focusGame, 500);
-    setTimeout(focusGame, 1500);
-  });
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  document.addEventListener("click", focusGame);
-  document.addEventListener("touchstart", focusGame, { passive: true });
+if(isMobile && navigator.vibrate){
 
-  // Mobil titreşim
-  document.addEventListener("touchstart", function () {
-    if (navigator.vibrate) {
-      navigator.vibrate(50);
-    }
-  }, { passive: true });
+document.addEventListener("touchstart", function(){
 
-  // Sayfanın gesture/scroll davranışını engelle
-  document.addEventListener("touchmove", function (e) {
-    e.preventDefault();
-  }, { passive: false });
+navigator.vibrate(80);
 
-  document.addEventListener("gesturestart", function (e) {
-    e.preventDefault();
-  });
+},{passive:true});
 
-  document.addEventListener("gesturechange", function (e) {
-    e.preventDefault();
-  });
+}
 
-  document.addEventListener("gestureend", function (e) {
-    e.preventDefault();
-  });
-
-  // Bazı cihazlarda görünürlük değişince input kaybolabiliyor
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-      setTimeout(focusGame, 300);
-    }
-  });
 </script>
 
 </body>
