@@ -2,110 +2,82 @@
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <title>Retro Oyun Arşivi</title>
+    <title>Retro Oyun Portalı</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { background-color: #121212; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; text-align: center; }
-        h1 { color: #e74c3c; text-transform: uppercase; letter-spacing: 2px; }
-        
-        /* Sistem Butonları */
-        .menu { margin-bottom: 30px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .menu button { 
-            padding: 12px 24px; cursor: pointer; background: #222; color: #fff; 
-            border: 2px solid #444; border-radius: 8px; font-weight: bold; transition: 0.3s;
-        }
-        .menu button:hover { background: #e74c3c; border-color: #e74c3c; transform: translateY(-3px); }
-
-        /* Oyun Kartları Alanı */
-        #game-list { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
-            gap: 25px; padding: 10px; max-width: 1200px; margin: 0 auto;
-        }
-        .game-card { 
-            background: #1e1e1e; border-radius: 12px; overflow: hidden; 
-            transition: 0.3s; cursor: pointer; border: 1px solid #333;
-            display: flex; flex-direction: column;
-        }
-        .game-card:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.5); border-color: #e74c3c; }
-        
-        /* Resimler */
-        .game-card img { width: 100%; height: 250px; object-fit: cover; background: #252525; }
-        .game-card p { padding: 10px; margin: 0; font-size: 14px; font-weight: 600; min-height: 40px; display: flex; align-items: center; justify-content: center; }
-
-        /* Emülatör Tam Ekran Alanı */
-        #emulator-container { display: none; width: 100%; height: 100vh; position: fixed; top: 0; left: 0; background: black; z-index: 9999; }
-        #back-btn { position: absolute; top: 10px; right: 10px; z-index: 10000; padding: 10px; background: red; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        body { background: #121212; color: white; font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .menu { margin-bottom: 30px; display: flex; justify-content: center; gap: 10px; }
+        button { padding: 12px 20px; cursor: pointer; background: #333; color: white; border: 1px solid #555; border-radius: 5px; transition: 0.3s; }
+        button:hover { background: #e74c3c; border-color: #e74c3c; }
+        #game-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .game-card { background: #1e1e1e; border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid #333; transition: 0.3s; }
+        .game-card:hover { transform: translateY(-5px); border-color: #e74c3c; }
+        .game-card img { width: 100%; height: 220px; object-fit: cover; background: #000; }
+        .game-card p { padding: 8px; font-size: 13px; margin: 0; min-height: 34px; display: flex; align-items: center; justify-content: center; }
+        #emulator-area { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 999; }
+        .close-btn { position: absolute; top: 10px; right: 10px; z-index: 1000; padding: 8px 15px; background: red; color: white; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h1>EmulatorJS Koleksiyonu</h1>
+    <h1>OYUN KOLEKSİYONU</h1>
 
     <div class="menu">
-        <button onclick="loadSystem('nes', 'Nintendo_-_Nintendo_Entertainment_System')">NES</button>
-        <button onclick="loadSystem('snes', 'Nintendo_-_Super_Nintendo_Entertainment_System')">SNES</button>
-        <button onclick="loadSystem('genesis', 'Sega_-_Mega_Drive_-_Genesis')">GENESIS</button>
-        <button onclick="loadSystem('mame', 'MAME')">MAME 2003</button>
+        <button onclick="fetchGames('nes', 'Nintendo_-_Nintendo_Entertainment_System')">NES</button>
+        <button onclick="fetchGames('snes', 'Nintendo_-_Super_Nintendo_Entertainment_System')">SNES</button>
+        <button onclick="fetchGames('genesis', 'Sega_-_Mega_Drive_-_Genesis')">GENESIS</button>
+        <button onclick="fetchGames('mame', 'MAME')">MAME 2003</button>
     </div>
 
-    <div id="game-list">
-        <p>Lütfen yukarıdan bir sistem seçin...</p>
-    </div>
+    <div id="game-list">Sistem seçerek başlayın...</div>
 
-    <div id="emulator-container">
-        <button id="back-btn" onclick="location.reload()">✖ Kapat</button>
-        <div id="game"></div>
+    <div id="emulator-area">
+        <button class="close-btn" onclick="location.reload()">KAPAT</button>
+        <div id="game-container" style="width:100%; height:100%;"></div>
     </div>
 
     <script>
-        async function loadSystem(jsonName, libretroFolder) {
-            const container = document.getElementById('game-list');
-            container.innerHTML = "<p>Oyunlar yükleniyor...</p>";
-
+        async function fetchGames(sys, libretroPath) {
+            const list = document.getElementById('game-list');
+            list.innerHTML = "Yükleniyor...";
+            
             try {
-                // Senin belirttiğin data/name klasöründeki JSON'u çekiyoruz
-                const response = await fetch(`data/name/${jsonName}.json`);
-                const games = await response.json();
+                // 1. Veriyi senin data/name altındaki JSON'undan çekiyoruz
+                const res = await fetch(`./data/name/${sys}.json`);
+                if (!res.ok) throw new Error("JSON dosyası okunamadı");
+                const data = await res.json();
                 
-                container.innerHTML = ""; // İçini temizle
-
-                games.forEach(game => {
-                    // İSİMDEN RESİM ÇEKME MANTIĞI:
-                    // Oyun ismini URL formatına uygun hale getiriyoruz (Boşluklar %20 olur)
-                    const safeName = encodeURIComponent(game.name);
-                    const thumbUrl = `https://thumbnails.libretro.com/${libretroFolder}/Named_Boxarts/${safeName}.png`;
-
+                list.innerHTML = "";
+                data.forEach(game => {
+                    // 2. Resim URL'ini Libretro'ya göre otomatik oluşturuyoruz
+                    const imgUrl = `https://thumbnails.libretro.com/${libretroPath}/Named_Boxarts/${encodeURIComponent(game.name)}.png`;
+                    
                     const card = document.createElement('div');
                     card.className = 'game-card';
-                    card.onclick = () => startGame(game.file, game.core, game.name);
-
+                    // 3. Dosya yolunu (roms klasörü) JSON'daki "file" kısmından okuyoruz
+                    card.onclick = () => launchGame(game.file, game.core);
+                    
                     card.innerHTML = `
-                        <img src="${thumbUrl}" onerror="this.src='https://via.placeholder.com/150x250?text=Resim+Yok'" alt="${game.name}">
+                        <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/150x220?text=No+Image'">
                         <p>${game.name}</p>
                     `;
-                    container.appendChild(card);
+                    list.appendChild(card);
                 });
             } catch (err) {
-                container.innerHTML = "<p>JSON dosyası bulunamadı veya hatalı!</p>";
-                console.error(err);
+                list.innerHTML = "Hata: JSON bulunamadı veya yolu yanlış! (data/name/ klasörünü kontrol et)";
             }
         }
 
-        function startGame(romUrl, core, title) {
-            // Arayüzü gizle, emülatörü göster
-            document.getElementById('emulator-container').style.display = 'block';
+        function launchGame(file, core) {
+            document.getElementById('emulator-area').style.display = 'block';
+            window.EJS_player = '#game-container';
+            window.EJS_gameUrl = file; // ROM klasöründeki yol
+            window.EJS_core = core;
+            window.EJS_pathtodata = 'data/';
             
-            window.EJS_player = "#game";
-            window.EJS_gameUrl = romUrl; // JSON'daki "file" değeri
-            window.EJS_core = core;    // JSON'daki "core" değeri
-            window.EJS_gameName = title;
-            window.EJS_pathtodata = "data/"; // İndirdiğin data klasörün
-            window.EJS_startOnLoaded = true;
-
-            const script = document.createElement("script");
-            script.src = "data/loader.js";
-            document.body.appendChild(script);
+            const loader = document.createElement('script');
+            loader.src = 'data/loader.js';
+            document.body.appendChild(loader);
         }
     </script>
 </body>
