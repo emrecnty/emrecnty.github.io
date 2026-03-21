@@ -3,76 +3,75 @@
 <head>
     <meta charset="utf-8">
     <title>Retro Oyun Portalı</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { background: #121212; color: white; font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
-        .menu { margin-bottom: 30px; display: flex; justify-content: center; gap: 10px; }
-        button { padding: 12px 20px; cursor: pointer; background: #333; color: white; border: 1px solid #555; border-radius: 5px; transition: 0.3s; }
-        button:hover { background: #e74c3c; border-color: #e74c3c; }
-        #game-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+        .menu { margin-bottom: 30px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #333; color: white; border: 1px solid #555; border-radius: 5px; }
+        button:hover { background: #e74c3c; }
+        #game-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; padding: 20px; }
         .game-card { background: #1e1e1e; border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid #333; transition: 0.3s; }
-        .game-card:hover { transform: translateY(-5px); border-color: #e74c3c; }
-        .game-card img { width: 100%; height: 220px; object-fit: cover; background: #000; }
-        .game-card p { padding: 8px; font-size: 13px; margin: 0; min-height: 34px; display: flex; align-items: center; justify-content: center; }
-        #emulator-area { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 999; }
-        .close-btn { position: absolute; top: 10px; right: 10px; z-index: 1000; padding: 8px 15px; background: red; color: white; border: none; cursor: pointer; }
+        .game-card:hover { transform: scale(1.05); border-color: #e74c3c; }
+        .game-card img { width: 100%; height: 240px; object-fit: cover; }
+        .game-card p { padding: 10px; font-size: 14px; margin: 0; }
+        #emulator-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 1000; }
+        .close-btn { position: absolute; top: 10px; right: 10px; padding: 10px; background: red; color: white; border: none; cursor: pointer; z-index: 1001; }
     </style>
 </head>
 <body>
 
-    <h1>OYUN KOLEKSİYONU</h1>
+    <h1>EMRECNTY OYUN ARŞİVİ</h1>
 
     <div class="menu">
-        <button onclick="fetchGames('nes', 'Nintendo_-_Nintendo_Entertainment_System')">NES</button>
-        <button onclick="fetchGames('snes', 'Nintendo_-_Super_Nintendo_Entertainment_System')">SNES</button>
-        <button onclick="fetchGames('genesis', 'Sega_-_Mega_Drive_-_Genesis')">GENESIS</button>
-        <button onclick="fetchGames('mame', 'MAME')">MAME 2003</button>
+        <button onclick="loadList('nes', 'Nintendo_-_Nintendo_Entertainment_System')">NES</button>
+        <button onclick="loadList('snes', 'Nintendo_-_Super_Nintendo_Entertainment_System')">SNES</button>
+        <button onclick="loadList('genesis', 'Sega_-_Mega_Drive_-_Genesis')">GENESIS</button>
+        <button onclick="loadList('mame', 'MAME')">MAME 2003</button>
     </div>
 
-    <div id="game-list">Sistem seçerek başlayın...</div>
+    <div id="game-list">Lütfen bir sistem seçin...</div>
 
-    <div id="emulator-area">
-        <button class="close-btn" onclick="location.reload()">KAPAT</button>
-        <div id="game-container" style="width:100%; height:100%;"></div>
+    <div id="emulator-screen">
+        <button class="close-btn" onclick="location.reload()">OYUNDAN ÇIK</button>
+        <div id="game-container" style="width:100%;height:100%"></div>
     </div>
 
     <script>
-        async function fetchGames(sys, libretroPath) {
-            const list = document.getElementById('game-list');
-            list.innerHTML = "Yükleniyor...";
-            
+        async function loadList(sys, libretroPath) {
+            const listDiv = document.getElementById('game-list');
+            listDiv.innerHTML = "Listeleniyor...";
+
             try {
-                // 1. Veriyi senin data/name altındaki JSON'undan çekiyoruz
-                const res = await fetch(`./data/name/${sys}.json`);
-                if (!res.ok) throw new Error("JSON dosyası okunamadı");
-                const data = await res.json();
+                // 1. JSON dosyasını senin belirttiğin data/name içinden okur
+                const response = await fetch(`./data/name/${sys}.json`);
+                const games = await response.json();
                 
-                list.innerHTML = "";
-                data.forEach(game => {
-                    // 2. Resim URL'ini Libretro'ya göre otomatik oluşturuyoruz
-                    const imgUrl = `https://thumbnails.libretro.com/${libretroPath}/Named_Boxarts/${encodeURIComponent(game.name)}.png`;
+                listDiv.innerHTML = "";
+                games.forEach(game => {
+                    // 2. Resim URL'ini Libretro'dan çekmek için ismi kullanır
+                    const thumbUrl = `https://thumbnails.libretro.com/${libretroPath}/Named_Boxarts/${encodeURIComponent(game.name)}.png`;
                     
                     const card = document.createElement('div');
                     card.className = 'game-card';
-                    // 3. Dosya yolunu (roms klasörü) JSON'daki "file" kısmından okuyoruz
-                    card.onclick = () => launchGame(game.file, game.core);
-                    
+                    // 3. Oyun dosyasını senin görseldeki roms/sistem/ klasöründen çeker
+                    card.onclick = () => startGame(`roms/${sys}/${game.file}`, game.core, game.name);
+
                     card.innerHTML = `
-                        <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/150x220?text=No+Image'">
+                        <img src="${thumbUrl}" onerror="this.src='https://via.placeholder.com/150x240?text=Resim+Yok'">
                         <p>${game.name}</p>
                     `;
-                    list.appendChild(card);
+                    listDiv.appendChild(card);
                 });
-            } catch (err) {
-                list.innerHTML = "Hata: JSON bulunamadı veya yolu yanlış! (data/name/ klasörünü kontrol et)";
+            } catch (e) {
+                listDiv.innerHTML = "Hata: JSON dosyası okunamadı!";
             }
         }
 
-        function launchGame(file, core) {
-            document.getElementById('emulator-area').style.display = 'block';
+        function startGame(romPath, core, name) {
+            document.getElementById('emulator-screen').style.display = 'block';
             window.EJS_player = '#game-container';
-            window.EJS_gameUrl = file; // ROM klasöründeki yol
+            window.EJS_gameUrl = romPath;
             window.EJS_core = core;
+            window.EJS_gameName = name;
             window.EJS_pathtodata = 'data/';
             
             const loader = document.createElement('script');
