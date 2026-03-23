@@ -7,98 +7,35 @@
   <style>
     html, body {
       margin: 0;
-      padding: 0;
       width: 100%;
       height: 100%;
       background: #000;
       overflow: hidden;
-      font-family: Arial, Helvetica, sans-serif;
-    }
-    #game-container {
-      width: 100vw;
-      height: 100vh;
-      max-width: 100%;
     }
     #game {
-      width: 100%;
-      height: 100%;
-    }
-    #error {
-      display: none;
-      color: #fff;
-      padding: 20px;
-      white-space: pre-wrap;
-      line-height: 1.5;
+      width: 100vw;
+      height: 100vh;
     }
   </style>
 </head>
 <body>
-  <div id="game-container">
-    <div id="game"></div>
-  </div>
-  <div id="error"></div>
+  <div id="game"></div>
 
   <script>
-    (function () {
-      const params = new URLSearchParams(window.location.search);
-      const core = params.get("core");
-      const rom = params.get("rom");
+    const params = new URLSearchParams(location.search);
+    const core = params.get("core");
+    const rom = params.get("rom");
 
-      const gameContainer = document.getElementById("game-container");
-      const errorEl = document.getElementById("error");
+    if (!core || !rom) {
+      document.body.innerHTML = '<div style="color:white;padding:20px;font-family:Arial">Eksik parametre: core ve rom gerekli.</div>';
+      throw new Error("Eksik parametre");
+    }
 
-      function fail(message) {
-        gameContainer.style.display = "none";
-        errorEl.style.display = "block";
-        errorEl.textContent = message;
-      }
-
-      if (!core || !rom) {
-        fail("Eksik parametre: core ve rom gerekli.");
-        return;
-      }
-
-      window.addEventListener("error", function (e) {
-        fail("JavaScript hatası: " + e.message);
-      });
-
-      window.addEventListener("unhandledrejection", function (e) {
-        fail("Promise hatası: " + (e.reason?.message || e.reason || "Bilinmeyen hata"));
-      });
-
-      async function boot() {
-        try {
-          const loaderCheck = await fetch("data/loader.js", { method: "HEAD" });
-          if (!loaderCheck.ok) {
-            fail("data/loader.js bulunamadı.");
-            return;
-          }
-
-          const romCheck = await fetch(rom, { method: "HEAD" });
-          if (!romCheck.ok) {
-            fail("ROM bulunamadı: " + rom);
-            return;
-          }
-
-          window.EJS_player = "#game";
-          window.EJS_core = core;
-          window.EJS_gameUrl = rom;
-          window.EJS_pathtodata = "data/";
-          window.EJS_startOnLoaded = true;
-
-          const script = document.createElement("script");
-          script.src = "data/loader.js";
-          script.onerror = function () {
-            fail("EmulatorJS loader yüklenemedi.");
-          };
-          document.body.appendChild(script);
-        } catch (err) {
-          fail("Başlatma hatası: " + (err.message || String(err)));
-        }
-      }
-
-      boot();
-    })();
+    window.EJS_player = "#game";
+    window.EJS_core = core;
+    window.EJS_gameUrl = rom;
+    window.EJS_pathtodata = "/data/";
   </script>
+  <script src="/data/loader.js"></script>
 </body>
 </html>
