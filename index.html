@@ -285,7 +285,7 @@
     function getPlayUrl(game) {
       const system = getSystem(game.system);
       const romPath = `roms/${game.system}/${game.rom}`;
-      return `play.html?core=${encodeURIComponent(system.core)}&rom=${encodeURIComponent(romPath)}`;
+      return `play.html?core=${encodeURIComponent(game.system)}&rom=${encodeURIComponent(romPath)}`;
     }
 
     function thumbCandidates(game) {
