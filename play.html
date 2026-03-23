@@ -30,6 +30,7 @@
       color: #fff;
       padding: 20px;
       font-family: Arial, Helvetica, sans-serif;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -40,94 +41,59 @@
   <div id="error"></div>
 
   <script>
-    (function () {
+    (async function () {
       const params = new URLSearchParams(window.location.search);
-      const coreParam = params.get("core");
+      const core = params.get("core");
       const rom = params.get("rom");
 
-      if (!coreParam || !rom) {
-        document.getElementById("game-container").style.display = "none";
-        const errorEl = document.getElementById("error");
+      const gameContainer = document.getElementById("game-container");
+      const errorEl = document.getElementById("error");
+
+      function showError(message) {
+        gameContainer.style.display = "none";
         errorEl.style.display = "block";
-        errorEl.textContent = "Eksik parametre: core ve rom gerekli.";
+        errorEl.textContent = message;
+      }
+
+      if (!core || !rom) {
+        showError("Eksik parametre: core ve rom gerekli.");
         return;
       }
 
-      const CORE_ALIASES = {
-        gb: "gb",
-        nes: "nes",
-        snes: "snes",
-        genesis: "segaMD",
-        segamd: "segaMD",
-        mame: "arcade",
-        arcade: "arcade"
-      };
+      try {
+        const loaderCheck = await fetch("/data/loader.js", { method: "HEAD" });
+        if (!loaderCheck.ok) {
+          showError("Hata: /data/loader.js yüklenemedi.");
+          return;
+        }
 
-      const normalizedCoreKey = coreParam.toString().trim().toLowerCase();
-      const resolvedCore = CORE_ALIASES[normalizedCoreKey];
-
-      if (!resolvedCore) {
-        document.getElementById("game-container").style.display = "none";
-        const errorEl = document.getElementById("error");
-        errorEl.style.display = "block";
-        errorEl.textContent = "Geçersiz core parametresi: " + coreParam;
+        const romCheck = await fetch(rom, { method: "HEAD" });
+        if (!romCheck.ok) {
+          showError("Hata: ROM dosyası yüklenemedi.\n" + rom);
+          return;
+        }
+      } catch (err) {
+        showError("Dosya kontrol hatası:\n" + err.message);
         return;
       }
 
       window.EJS_player = "#game";
-      window.EJS_core = resolvedCore;
+      window.EJS_core = core;
       window.EJS_gameUrl = rom;
-      window.EJS_pathtodata = "data/";
+      window.EJS_pathtodata = "/data/";
       window.EJS_startOnLoaded = true;
 
-      function tryVibrate() {
-        try {
-          if (navigator.vibrate) navigator.vibrate(15);
-        } catch (e) {}
-      }
-
-      function bindMobileButtons() {
-        const keywords = [
-          "up","down","left","right",
-          "a","b","x","y",
-          "start","select",
-          "l","r","l1","r1","l2","r2"
-        ];
-
-        const elements = document.querySelectorAll("button, [role='button'], div, span, canvas");
-
-        elements.forEach((el) => {
-          if (el.dataset.vibrationBound === "1") return;
-
-          const text = [
-            el.textContent || "",
-            el.id || "",
-            typeof el.className === "string" ? el.className : "",
-            el.getAttribute("aria-label") || "",
-            el.getAttribute("title") || ""
-          ].join(" ").toLowerCase();
-
-          const matched = keywords.some((key) => {
-            const parts = text.split(/[^a-z0-9]+/).filter(Boolean);
-            return text.trim() === key || parts.includes(key);
-          });
-
-          if (!matched) return;
-
-          el.dataset.vibrationBound = "1";
-          el.addEventListener("touchstart", tryVibrate, { passive: true });
-          el.addEventListener("pointerdown", tryVibrate, { passive: true });
-        });
-      }
-
-      window.addEventListener("load", function () {
-        setTimeout(bindMobileButtons, 1000);
-        setTimeout(bindMobileButtons, 2500);
-        setTimeout(bindMobileButtons, 4000);
+      window.addEventListener("error", function (e) {
+        showError("JavaScript hatası:\n" + (e.message || "Bilinmeyen hata"));
       });
+
+      const script = document.createElement("script");
+      script.src = "/data/loader.js";
+      script.onerror = function () {
+        showError("EmulatorJS loader yüklenemedi: /data/loader.js");
+      };
+      document.body.appendChild(script);
     })();
   </script>
-
-  <script src="data/loader.js"></script>
 </body>
 </html>
