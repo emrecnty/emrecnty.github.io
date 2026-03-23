@@ -95,41 +95,6 @@
       white-space:nowrap;
     }
 
-    .toolbar{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:flex-start;
-      align-items:center;
-      gap:12px;
-      margin-bottom:18px;
-      padding:14px 16px;
-      border:1px solid var(--border);
-      border-radius:14px;
-      background:var(--panel);
-      box-shadow:var(--shadow);
-    }
-
-    .toolbar-left{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-
-    .platform-name{
-      font-size:22px;
-      font-weight:800;
-      margin:0;
-    }
-
-    .meta{
-      color:var(--muted);
-      font-size:14px;
-    }
-
-    .search{
-      display:none;
-    }
-
     .grid{
       display:grid;
       grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
@@ -207,35 +172,17 @@
       box-shadow:var(--shadow);
     }
 
-    .footer-note{
-      margin-top:18px;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.5;
-    }
-
-    @media (max-width: 860px){
-      .count-inline{
-        margin-left:0;
-      }
-    }
-
-    @media (max-width: 640px){
-      .title{font-size:26px}
-      .platform-name{font-size:20px}
-      .wrap{width:min(100% - 20px, 1400px)}
-      .grid{grid-template-columns:repeat(auto-fill, minmax(150px, 1fr))}
-    }
   </style>
 </head>
 <body>
   <div class="wrap">
+
     <section class="hero">
       <div class="topbar">
         <h1 class="title">Retro Oyunlar</h1>
         <nav class="tabs" id="tabs"></nav>
         <div class="count-inline" id="gameCountInline">Oyunlar yükleniyor...</div>
-        <div class="search-icon" aria-label="Ara">⌕</div>
+        <div class="search-icon">⌕</div>
       </div>
     </section>
 
@@ -243,9 +190,6 @@
       <div class="loading">Oyunlar yükleniyor...</div>
     </main>
 
-    <div class="footer-note">
-      Görsel kaynağı: libretro-thumbnails. Bazı MAME oyunlarında thumbnail adı birebir eşleşmeyebilir; bu durumda kart yine oyun adıyla listelenir.
-    </div>
   </div>
 
   <script>
@@ -259,9 +203,6 @@
 
     const tabsEl = document.getElementById("tabs");
     const contentEl = document.getElementById("content");
-    const platformNameEl = document.getElementById("platformName");
-    const platformMetaEl = document.getElementById("platformMeta");
-    const searchInputEl = document.getElementById("searchInput");
     const gameCountInlineEl = document.getElementById("gameCountInline");
 
     let activeSystem = "gb";
@@ -295,7 +236,6 @@
         button.addEventListener("click", () => {
           if (activeSystem === system.key) return;
           activeSystem = system.key;
-          searchInputEl.value = "";
           buildTabs();
           loadPlatform(system.key);
         });
@@ -304,10 +244,8 @@
     }
 
     async function fetchJson(url) {
-      const response = await fetch(url, { cache: "no-store" });
-      if (!response.ok) {
-        throw new Error(url + " yüklenemedi");
-      }
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(url + " yüklenemedi");
       return response.json();
     }
 
@@ -317,7 +255,6 @@
 
       for (const item of nameDb) {
         if (!item || !item.rom) continue;
-
         const romKey = normalizeText(item.rom);
         const romBaseKey = normalizeText(stripExtension(item.rom));
         const gameName = item.name || stripExtension(item.rom);
@@ -330,22 +267,18 @@
     }
 
     function mergeGames(romList, nameDb, systemKey) {
-      const { exactMap, baseMap } = buildNameMaps(nameDb);
+      const maps = buildNameMaps(nameDb);
 
       return romList.map(romFile => {
         const exactKey = normalizeText(romFile);
         const baseKey = normalizeText(stripExtension(romFile));
 
         const foundName =
-          exactMap.get(exactKey) ||
-          baseMap.get(baseKey) ||
+          maps.exactMap.get(exactKey) ||
+          maps.baseMap.get(baseKey) ||
           stripExtension(romFile);
 
-        return {
-          rom: romFile,
-          name: foundName,
-          system: systemKey
-        };
+        return { rom: romFile, name: foundName, system: systemKey };
       });
     }
 
@@ -367,16 +300,21 @@
       ];
     }
 
+    function createPlaceholder(text) {
+      const div = document.createElement("div");
+      div.className = "thumb placeholder";
+      div.textContent = "Görsel yok";
+      return div;
+    }
+
     function setPreferredThumb(img, game) {
       const urls = thumbCandidates(game);
       let index = 0;
 
       function tryNext() {
         if (index >= urls.length) {
-          img.classList.add("placeholder");
-          img.alt = game.name;
-          img.removeAttribute("src");
-          img.replaceWith(createPlaceholder(game.name));
+          const placeholder = createPlaceholder(game.name);
+          img.replaceWith(placeholder);
           return;
         }
 
@@ -393,39 +331,17 @@
       tryNext();
     }
 
-    function createPlaceholder(text) {
-      const div = document.createElement("div");
-      div.className = "thumb placeholder";
-      div.textContent = "Görsel yok";
-      div.setAttribute("aria-label", text);
-      return div;
-    }
-
     function renderGames(games) {
-      const query = normalizeText(searchInputEl.value);
-      const filtered = query
-        ? games.filter(game =>
-            normalizeText(game.name).includes(query) ||
-            normalizeText(game.rom).includes(query)
-          )
-        : games;
-
-      if (!filtered.length) {
-        contentEl.innerHTML = '<div class="empty">Bu platformda gösterilecek oyun bulunamadı.</div>';
-        return;
-      }
-
       const grid = document.createElement("div");
       grid.className = "grid";
 
-      for (const game of filtered) {
+      for (const game of games) {
         const card = document.createElement("a");
         card.className = "card";
         card.href = getPlayUrl(game);
 
         const img = document.createElement("img");
         img.className = "thumb";
-        img.alt = game.name;
         img.loading = "lazy";
 
         const body = document.createElement("div");
@@ -454,10 +370,6 @@
     }
 
     async function loadPlatform(systemKey) {
-      const system = getSystem(systemKey);
-
-      platformNameEl.textContent = system.label;
-      platformMetaEl.textContent = "Oyunlar yükleniyor...";
       gameCountInlineEl.textContent = "Oyunlar yükleniyor...";
       contentEl.innerHTML = '<div class="loading">Oyunlar yükleniyor...</div>';
 
@@ -468,20 +380,13 @@
         ]);
 
         currentGames = mergeGames(romList, nameDb, systemKey);
-        platformMetaEl.textContent = `${currentGames.length} oyun bulundu`;
         gameCountInlineEl.textContent = `${currentGames.length} oyun`;
         renderGames(currentGames);
       } catch (error) {
-        console.error(error);
-        contentEl.innerHTML = '<div class="error">Oyun listesi yüklenemedi. Dosya yollarını kontrol et.</div>';
-        platformMetaEl.textContent = "Yükleme hatası";
-        gameCountInlineEl.textContent = "Yükleme hatası";
+        contentEl.innerHTML = '<div class="error">Oyun listesi yüklenemedi.</div>';
+        gameCountInlineEl.textContent = "Hata";
       }
     }
-
-    searchInputEl.addEventListener("input", () => {
-      renderGames(currentGames);
-    });
 
     buildTabs();
     loadPlatform(activeSystem);
