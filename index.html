@@ -2,66 +2,242 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8">
-  <title>Retro Oyun Arşivi</title>
+  <title>Retro Oyunlar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root{
-      --bg:#0b0b0f;
-      --panel:#161821;
-      --panel-2:#1f2230;
-      --text:#f3f5f7;
-      --muted:#aeb6c2;
-      --accent:#56b6ff;
-      --border:#2f3447;
-      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --bg:#f2efe8;
+      --panel:#fbf8f2;
+      --panel-2:#f6f2ea;
+      --text:#26231f;
+      --muted:#6f685f;
+      --accent:#d9d2c5;
+      --border:#ddd6ca;
+      --shadow:0 10px 30px rgba(60,52,44,.08);
     }
+
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
     body{min-height:100vh}
-    .wrap{width:min(1400px, calc(100% - 32px));margin:0 auto;padding:24px 0 40px}
-    .hero{margin-bottom:20px;padding:24px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(180deg,#191c27 0%,#131621 100%);box-shadow:var(--shadow)}
-    .title{margin:0 0 8px 0;font-size:32px;line-height:1.1}
-    .subtitle{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
-    .tabs{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 18px 0}
-    .tab{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:999px;padding:12px 18px;font-size:14px;font-weight:700;cursor:pointer;transition:.18s ease}
-    .tab:hover{border-color:var(--accent);transform:translateY(-1px)}
-    .tab.active{background:var(--accent);color:#08111a;border-color:var(--accent)}
-    .toolbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;padding:14px 16px;border:1px solid var(--border);border-radius:14px;background:var(--panel);box-shadow:var(--shadow)}
-    .toolbar-left{display:flex;flex-direction:column;gap:4px}
-    .platform-name{font-size:22px;font-weight:800;margin:0}
-    .meta{color:var(--muted);font-size:14px}
-    .search{width:min(360px,100%);padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--panel-2);color:var(--text);outline:none}
-    .search:focus{border-color:var(--accent)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
-    .card{display:flex;flex-direction:column;text-decoration:none;color:inherit;border:1px solid var(--border);background:var(--panel);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);transition:.18s ease;min-height:320px}
-    .card:hover{transform:translateY(-2px);border-color:var(--accent)}
-    .thumb{width:100%;aspect-ratio:4/3;background:#0f1117;border-bottom:1px solid var(--border);object-fit:cover;display:block}
-    .thumb.placeholder{display:flex;align-items:center;justify-content:center;color:#667086;font-size:13px;letter-spacing:.3px}
-    .card-body{display:flex;flex-direction:column;gap:8px;padding:12px;min-height:0;flex:1}
-    .game-name{font-size:14px;line-height:1.4;font-weight:700;margin:0;word-break:break-word}
-    .game-rom{color:var(--muted);font-size:12px;line-height:1.35;word-break:break-word;margin-top:auto}
-    .empty,.loading,.error{border:1px solid var(--border);background:var(--panel);border-radius:16px;padding:22px;color:var(--muted);box-shadow:var(--shadow)}
-    .footer-note{margin-top:18px;color:var(--muted);font-size:13px;line-height:1.5}
-    @media (max-width:640px){
+
+    .wrap{
+      width:min(1400px, calc(100% - 32px));
+      margin:0 auto;
+      padding:24px 0 40px;
+    }
+
+    .hero{
+      margin-bottom:20px;
+      padding:24px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:linear-gradient(180deg, #fbf8f2 0%, #f3eee5 100%);
+      box-shadow:var(--shadow);
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .title{
+      margin:0;
+      font-size:32px;
+      line-height:1.1;
+      white-space:nowrap;
+    }
+
+    .tabs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin:0;
+    }
+
+    .tab{
+      border:1px solid var(--border);
+      background:var(--panel);
+      color:var(--text);
+      border-radius:999px;
+      padding:12px 18px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+
+    .tab:hover{
+      border-color:#bdb4a6;
+      transform:translateY(-1px);
+    }
+
+    .tab.active{
+      background:#d8cfbf;
+      color:#26231f;
+      border-color:#d8cfbf;
+    }
+
+    .count-inline{
+      margin-left:auto;
+      color:var(--muted);
+      font-size:15px;
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    .search-icon{
+      font-size:22px;
+      line-height:1;
+      color:var(--muted);
+      user-select:none;
+      white-space:nowrap;
+    }
+
+    .toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:flex-start;
+      align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+      padding:14px 16px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:var(--panel);
+      box-shadow:var(--shadow);
+    }
+
+    .toolbar-left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    .platform-name{
+      font-size:22px;
+      font-weight:800;
+      margin:0;
+    }
+
+    .meta{
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .search{
+      display:none;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+      gap:16px;
+    }
+
+    .card{
+      display:flex;
+      flex-direction:column;
+      text-decoration:none;
+      color:inherit;
+      border:1px solid var(--border);
+      background:var(--panel);
+      border-radius:16px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      transition:.18s ease;
+      min-height:320px;
+    }
+
+    .card:hover{
+      transform:translateY(-2px);
+      border-color:#bdb4a6;
+    }
+
+    .thumb{
+      width:100%;
+      aspect-ratio: 4 / 3;
+      background:#ece7de;
+      border-bottom:1px solid var(--border);
+      object-fit:cover;
+      display:block;
+    }
+
+    .thumb.placeholder{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#8d857a;
+      font-size:13px;
+      letter-spacing:.3px;
+    }
+
+    .card-body{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding:12px;
+      min-height:0;
+      flex:1;
+    }
+
+    .game-name{
+      font-size:14px;
+      line-height:1.4;
+      font-weight:700;
+      margin:0;
+      word-break:break-word;
+    }
+
+    .game-rom{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+      word-break:break-word;
+      margin-top:auto;
+    }
+
+    .empty, .loading, .error{
+      border:1px solid var(--border);
+      background:var(--panel);
+      border-radius:16px;
+      padding:22px;
+      color:var(--muted);
+      box-shadow:var(--shadow);
+    }
+
+    .footer-note{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    @media (max-width: 860px){
+      .count-inline{
+        margin-left:0;
+      }
+    }
+
+    @media (max-width: 640px){
       .title{font-size:26px}
       .platform-name{font-size:20px}
       .wrap{width:min(100% - 20px, 1400px)}
-      .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+      .grid{grid-template-columns:repeat(auto-fill, minmax(150px, 1fr))}
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <section class="hero">
-      <h1 class="title">Retro Oyun Arşivi</h1>
-      <p class="subtitle">
-        Oyunlar <strong>roms</strong> klasörüne göre listelenir, isimler <strong>data/name</strong> içinden çekilir,
-        görseller ise sırasıyla <strong>Named_Snaps</strong>, <strong>Named_Boxarts</strong>, <strong>Named_Titles</strong>
-        olarak denenir.
-      </p>
+      <div class="topbar">
+        <h1 class="title">Retro Oyunlar</h1>
+        <nav class="tabs" id="tabs"></nav>
+        <div class="count-inline" id="gameCountInline">Oyunlar yükleniyor...</div>
+        <div class="search-icon" aria-label="Ara">⌕</div>
+      </div>
     </section>
-
-    <nav class="tabs" id="tabs"></nav>
 
     <section class="toolbar">
       <div class="toolbar-left">
@@ -94,6 +270,7 @@
     const platformNameEl = document.getElementById("platformName");
     const platformMetaEl = document.getElementById("platformMeta");
     const searchInputEl = document.getElementById("searchInput");
+    const gameCountInlineEl = document.getElementById("gameCountInline");
 
     let activeSystem = "gb";
     let currentGames = [];
@@ -136,7 +313,9 @@
 
     async function fetchJson(url) {
       const response = await fetch(url, { cache: "no-store" });
-      if (!response.ok) throw new Error(url + " yüklenemedi");
+      if (!response.ok) {
+        throw new Error(url + " yüklenemedi");
+      }
       return response.json();
     }
 
@@ -146,6 +325,7 @@
 
       for (const item of nameDb) {
         if (!item || !item.rom) continue;
+
         const romKey = normalizeText(item.rom);
         const romBaseKey = normalizeText(stripExtension(item.rom));
         const gameName = item.name || stripExtension(item.rom);
@@ -158,18 +338,22 @@
     }
 
     function mergeGames(romList, nameDb, systemKey) {
-      const maps = buildNameMaps(nameDb);
+      const { exactMap, baseMap } = buildNameMaps(nameDb);
 
       return romList.map(romFile => {
         const exactKey = normalizeText(romFile);
         const baseKey = normalizeText(stripExtension(romFile));
 
         const foundName =
-          maps.exactMap.get(exactKey) ||
-          maps.baseMap.get(baseKey) ||
+          exactMap.get(exactKey) ||
+          baseMap.get(baseKey) ||
           stripExtension(romFile);
 
-        return { rom: romFile, name: foundName, system: systemKey };
+        return {
+          rom: romFile,
+          name: foundName,
+          system: systemKey
+        };
       });
     }
 
@@ -191,22 +375,16 @@
       ];
     }
 
-    function createPlaceholder(text) {
-      const div = document.createElement("div");
-      div.className = "thumb placeholder";
-      div.textContent = "Görsel yok";
-      div.setAttribute("aria-label", text);
-      return div;
-    }
-
     function setPreferredThumb(img, game) {
       const urls = thumbCandidates(game);
       let index = 0;
 
       function tryNext() {
         if (index >= urls.length) {
-          const placeholder = createPlaceholder(game.name);
-          img.replaceWith(placeholder);
+          img.classList.add("placeholder");
+          img.alt = game.name;
+          img.removeAttribute("src");
+          img.replaceWith(createPlaceholder(game.name));
           return;
         }
 
@@ -221,6 +399,14 @@
       }
 
       tryNext();
+    }
+
+    function createPlaceholder(text) {
+      const div = document.createElement("div");
+      div.className = "thumb placeholder";
+      div.textContent = "Görsel yok";
+      div.setAttribute("aria-label", text);
+      return div;
     }
 
     function renderGames(games) {
@@ -263,6 +449,7 @@
 
         body.appendChild(title);
         body.appendChild(rom);
+
         card.appendChild(img);
         card.appendChild(body);
         grid.appendChild(card);
@@ -276,8 +463,10 @@
 
     async function loadPlatform(systemKey) {
       const system = getSystem(systemKey);
+
       platformNameEl.textContent = system.label;
       platformMetaEl.textContent = "Oyunlar yükleniyor...";
+      gameCountInlineEl.textContent = "Oyunlar yükleniyor...";
       contentEl.innerHTML = '<div class="loading">Oyunlar yükleniyor...</div>';
 
       try {
@@ -288,11 +477,13 @@
 
         currentGames = mergeGames(romList, nameDb, systemKey);
         platformMetaEl.textContent = `${currentGames.length} oyun bulundu`;
+        gameCountInlineEl.textContent = `${currentGames.length} oyun`;
         renderGames(currentGames);
       } catch (error) {
         console.error(error);
         contentEl.innerHTML = '<div class="error">Oyun listesi yüklenemedi. Dosya yollarını kontrol et.</div>';
         platformMetaEl.textContent = "Yükleme hatası";
+        gameCountInlineEl.textContent = "Yükleme hatası";
       }
     }
 
