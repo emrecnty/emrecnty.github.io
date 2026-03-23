@@ -8,28 +8,36 @@
     html, body {
       margin: 0;
       padding: 0;
-      background: #000;
-      color: #fff;
       width: 100%;
       height: 100%;
+      background: #000;
       overflow: hidden;
       font-family: Arial, Helvetica, sans-serif;
     }
 
-    #game {
+    #game-wrap {
       width: 100%;
       height: 100vh;
+      max-width: 100%;
+    }
+
+    #game {
+      width: 100%;
+      height: 100%;
     }
 
     #error {
       display: none;
+      color: #fff;
       padding: 24px;
       line-height: 1.5;
     }
   </style>
 </head>
 <body>
-  <div id="game"></div>
+  <div id="game-wrap">
+    <div id="game"></div>
+  </div>
   <div id="error"></div>
 
   <script>
@@ -37,12 +45,13 @@
     const core = params.get("core");
     const rom = params.get("rom");
 
-    const errorBox = document.getElementById("error");
+    const gameEl = document.getElementById("game-wrap");
+    const errorEl = document.getElementById("error");
 
     if (!core || !rom) {
-      document.getElementById("game").style.display = "none";
-      errorBox.style.display = "block";
-      errorBox.textContent = "Eksik parametre: core ve rom gerekli.";
+      gameEl.style.display = "none";
+      errorEl.style.display = "block";
+      errorEl.textContent = "Eksik parametre: core ve rom gerekli.";
       throw new Error("Missing core or rom parameter");
     }
 
@@ -51,93 +60,63 @@
     window.EJS_gameUrl = rom;
     window.EJS_pathtodata = "data/";
     window.EJS_startOnLoaded = true;
-    window.EJS_threads = false;
 
-    function vibrateOnce() {
+    function vibrateShort() {
       try {
-        if (navigator.vibrate) {
-          navigator.vibrate(60);
-        }
+        if (navigator.vibrate) navigator.vibrate(18);
       } catch (_) {}
     }
 
-    function isVisible(el) {
-      if (!el) return false;
-      const style = window.getComputedStyle(el);
-      const rect = el.getBoundingClientRect();
-      return style.display !== "none" &&
-             style.visibility !== "hidden" &&
-             rect.width > 0 &&
-             rect.height > 0;
+    const controlKeywords = [
+      "up", "down", "left", "right",
+      "a", "b", "x", "y",
+      "start", "select",
+      "l", "r", "l1", "r1", "l2", "r2"
+    ];
+
+    function matchesControlText(value) {
+      if (!value) return false;
+      const normalized = value.toLowerCase().trim();
+      const parts = normalized.split(/[^a-z0-9]+/).filter(Boolean);
+      return controlKeywords.some(key => normalized === key || parts.includes(key));
     }
 
-    function isControlButton(el) {
+    function isGameControl(el) {
       if (!el) return false;
-
-      const text = (el.innerText || el.textContent || "").trim().toLowerCase();
-      const cls = ((el.className && el.className.toString()) || "").toLowerCase();
-      const id = (el.id || "").toLowerCase();
-      const aria = (el.getAttribute("aria-label") || "").trim().toLowerCase();
-      const title = (el.getAttribute("title") || "").trim().toLowerCase();
-
-      const keywords = [
-        "up", "down", "left", "right",
-        "a", "b", "x", "y",
-        "start", "select",
-        "l", "r", "l1", "r1", "l2", "r2"
+      const values = [
+        el.textContent || "",
+        el.innerText || "",
+        el.id || "",
+        typeof el.className === "string" ? el.className : "",
+        el.getAttribute("aria-label") || "",
+        el.getAttribute("title") || ""
       ];
-
-      const values = [text, cls, id, aria, title];
-
-      return values.some(value => {
-        if (!value) return false;
-        return keywords.some(k => {
-          if (value === k) return true;
-          return value.split(/[^a-z0-9]+/).includes(k);
-        });
-      });
+      return values.some(matchesControlText);
     }
 
-    function bindVibration(root = document) {
-      const selector = "button, [role='button'], .btn, .button, .gamepad, .controls, .controller, .ejs--button, .ejs_button";
-      const elements = root.querySelectorAll(selector);
-
+    function bindMobileVibration(root = document) {
+      const elements = root.querySelectorAll("button, [role='button'], div, span, canvas");
       elements.forEach(el => {
         if (el.dataset.vibrationBound === "1") return;
+        if (!isGameControl(el)) return;
+
         el.dataset.vibrationBound = "1";
-
-        const handler = (event) => {
-          const target = event.currentTarget;
-          if (isVisible(target) && isControlButton(target)) {
-            vibrateOnce();
-          }
-        };
-
+        const handler = () => vibrateShort();
         el.addEventListener("touchstart", handler, { passive: true });
         el.addEventListener("pointerdown", handler, { passive: true });
       });
     }
 
-    const observer = new MutationObserver(() => {
-      bindVibration(document);
-    });
-
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-      bindVibration(document);
-    });
+    const observer = new MutationObserver(() => bindMobileVibration(document));
+    observer.observe(document.documentElement, { childList: true, subtree: true });
 
     window.addEventListener("load", () => {
-      bindVibration(document);
-      setTimeout(() => bindVibration(document), 1000);
-      setTimeout(() => bindVibration(document), 2500);
+      bindMobileVibration(document);
+      setTimeout(() => bindMobileVibration(document), 1200);
+      setTimeout(() => bindMobileVibration(document), 2500);
     });
   </script>
 
-  <script src="minify/emulator.js"></script>
+  <script src="data/loader.js"></script>
 </body>
 </html>
