@@ -9,10 +9,12 @@ fs.mkdirSync(OUT_ROOT, { recursive: true });
 
 for (const system of SYSTEMS) {
   const folder = path.join(ROM_ROOT, system);
-
   let files = [];
+
   if (fs.existsSync(folder)) {
-    files = fs.readdirSync(folder).filter(name => !name.startsWith("."));
+    files = fs.readdirSync(folder)
+      .filter(name => !name.startsWith("."))
+      .sort((a, b) => a.localeCompare(b, "tr"));
   }
 
   fs.writeFileSync(
@@ -20,6 +22,4 @@ for (const system of SYSTEMS) {
     JSON.stringify(files, null, 2),
     "utf8"
   );
-
-  console.log(system, "tamam");
 }
