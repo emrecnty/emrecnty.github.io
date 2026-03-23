@@ -12,11 +12,10 @@
       height: 100%;
       background: #000;
       overflow: hidden;
-      font-family: Arial, Helvetica, sans-serif;
     }
 
-    #game-wrap {
-      width: 100%;
+    #game-container {
+      width: 100vw;
       height: 100vh;
       max-width: 100%;
     }
@@ -29,92 +28,83 @@
     #error {
       display: none;
       color: #fff;
-      padding: 24px;
-      line-height: 1.5;
+      padding: 20px;
+      font-family: Arial, Helvetica, sans-serif;
     }
   </style>
 </head>
 <body>
-  <div id="game-wrap">
+  <div id="game-container">
     <div id="game"></div>
   </div>
   <div id="error"></div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const core = params.get("core");
-    const rom = params.get("rom");
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const core = params.get("core");
+      const rom = params.get("rom");
 
-    const gameEl = document.getElementById("game-wrap");
-    const errorEl = document.getElementById("error");
+      if (!core || !rom) {
+        document.getElementById("game-container").style.display = "none";
+        const errorEl = document.getElementById("error");
+        errorEl.style.display = "block";
+        errorEl.textContent = "Eksik parametre: core ve rom gerekli.";
+        return;
+      }
 
-    if (!core || !rom) {
-      gameEl.style.display = "none";
-      errorEl.style.display = "block";
-      errorEl.textContent = "Eksik parametre: core ve rom gerekli.";
-      throw new Error("Missing core or rom parameter");
-    }
+      window.EJS_player = "#game";
+      window.EJS_core = core;
+      window.EJS_gameUrl = rom;
+      window.EJS_pathtodata = "data/";
+      window.EJS_startOnLoaded = true;
 
-    window.EJS_player = "#game";
-    window.EJS_core = core;
-    window.EJS_gameUrl = rom;
-    window.EJS_pathtodata = "data/";
-    window.EJS_startOnLoaded = true;
+      function tryVibrate() {
+        try {
+          if (navigator.vibrate) navigator.vibrate(15);
+        } catch (e) {}
+      }
 
-    function vibrateShort() {
-      try {
-        if (navigator.vibrate) navigator.vibrate(18);
-      } catch (_) {}
-    }
+      function bindMobileButtons() {
+        const keywords = [
+          "up","down","left","right",
+          "a","b","x","y",
+          "start","select",
+          "l","r","l1","r1","l2","r2"
+        ];
 
-    const controlKeywords = [
-      "up", "down", "left", "right",
-      "a", "b", "x", "y",
-      "start", "select",
-      "l", "r", "l1", "r1", "l2", "r2"
-    ];
+        const elements = document.querySelectorAll("button, [role='button'], div, span, canvas");
 
-    function matchesControlText(value) {
-      if (!value) return false;
-      const normalized = value.toLowerCase().trim();
-      const parts = normalized.split(/[^a-z0-9]+/).filter(Boolean);
-      return controlKeywords.some(key => normalized === key || parts.includes(key));
-    }
+        elements.forEach((el) => {
+          if (el.dataset.vibrationBound === "1") return;
 
-    function isGameControl(el) {
-      if (!el) return false;
-      const values = [
-        el.textContent || "",
-        el.innerText || "",
-        el.id || "",
-        typeof el.className === "string" ? el.className : "",
-        el.getAttribute("aria-label") || "",
-        el.getAttribute("title") || ""
-      ];
-      return values.some(matchesControlText);
-    }
+          const text = [
+            el.textContent || "",
+            el.id || "",
+            typeof el.className === "string" ? el.className : "",
+            el.getAttribute("aria-label") || "",
+            el.getAttribute("title") || ""
+          ].join(" ").toLowerCase();
 
-    function bindMobileVibration(root = document) {
-      const elements = root.querySelectorAll("button, [role='button'], div, span, canvas");
-      elements.forEach(el => {
-        if (el.dataset.vibrationBound === "1") return;
-        if (!isGameControl(el)) return;
+          const matched = keywords.some((key) => {
+            const parts = text.split(/[^a-z0-9]+/).filter(Boolean);
+            return text.trim() === key || parts.includes(key);
+          });
 
-        el.dataset.vibrationBound = "1";
-        const handler = () => vibrateShort();
-        el.addEventListener("touchstart", handler, { passive: true });
-        el.addEventListener("pointerdown", handler, { passive: true });
+          if (!matched) return;
+
+          el.dataset.vibrationBound = "1";
+          el.addEventListener("touchstart", tryVibrate, { passive: true });
+          el.addEventListener("pointerdown", tryVibrate, { passive: true });
+        });
+      }
+
+      window.addEventListener("load", function () {
+        setTimeout(bindMobileButtons, 1000);
+        setTimeout(bindMobileButtons, 2500);
+        setTimeout(bindMobileButtons, 4000);
       });
-    }
-
-    const observer = new MutationObserver(() => bindMobileVibration(document));
-    observer.observe(document.documentElement, { childList: true, subtree: true });
-
-    window.addEventListener("load", () => {
-      bindMobileVibration(document);
-      setTimeout(() => bindMobileVibration(document), 1200);
-      setTimeout(() => bindMobileVibration(document), 2500);
-    });
+    })();
   </script>
 
   <script src="data/loader.js"></script>
