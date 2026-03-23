@@ -12,24 +12,23 @@
       height: 100%;
       background: #000;
       overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
     }
-
     #game-container {
       width: 100vw;
       height: 100vh;
       max-width: 100%;
     }
-
     #game {
       width: 100%;
       height: 100%;
     }
-
     #error {
       display: none;
       color: #fff;
       padding: 20px;
-      font-family: Arial, Helvetica, sans-serif;
+      white-space: pre-wrap;
+      line-height: 1.5;
     }
   </style>
 </head>
@@ -45,68 +44,61 @@
       const core = params.get("core");
       const rom = params.get("rom");
 
-      if (!core || !rom) {
-        document.getElementById("game-container").style.display = "none";
-        const errorEl = document.getElementById("error");
+      const gameContainer = document.getElementById("game-container");
+      const errorEl = document.getElementById("error");
+
+      function fail(message) {
+        gameContainer.style.display = "none";
         errorEl.style.display = "block";
-        errorEl.textContent = "Eksik parametre: core ve rom gerekli.";
+        errorEl.textContent = message;
+      }
+
+      if (!core || !rom) {
+        fail("Eksik parametre: core ve rom gerekli.");
         return;
       }
 
-      window.EJS_player = "#game";
-      window.EJS_core = core;
-      window.EJS_gameUrl = rom;
-      window.EJS_pathtodata = "data/";
-      window.EJS_startOnLoaded = true;
-
-      function tryVibrate() {
-        try {
-          if (navigator.vibrate) navigator.vibrate(15);
-        } catch (e) {}
-      }
-
-      function bindMobileButtons() {
-        const keywords = [
-          "up","down","left","right",
-          "a","b","x","y",
-          "start","select",
-          "l","r","l1","r1","l2","r2"
-        ];
-
-        const elements = document.querySelectorAll("button, [role='button'], div, span, canvas");
-
-        elements.forEach((el) => {
-          if (el.dataset.vibrationBound === "1") return;
-
-          const text = [
-            el.textContent || "",
-            el.id || "",
-            typeof el.className === "string" ? el.className : "",
-            el.getAttribute("aria-label") || "",
-            el.getAttribute("title") || ""
-          ].join(" ").toLowerCase();
-
-          const matched = keywords.some((key) => {
-            const parts = text.split(/[^a-z0-9]+/).filter(Boolean);
-            return text.trim() === key || parts.includes(key);
-          });
-
-          if (!matched) return;
-
-          el.dataset.vibrationBound = "1";
-          el.addEventListener("touchstart", tryVibrate, { passive: true });
-          el.addEventListener("pointerdown", tryVibrate, { passive: true });
-        });
-      }
-
-      window.addEventListener("load", function () {
-        setTimeout(bindMobileButtons, 1000);
-        setTimeout(bindMobileButtons, 2500);
-        setTimeout(bindMobileButtons, 4000);
+      window.addEventListener("error", function (e) {
+        fail("JavaScript hatası: " + e.message);
       });
+
+      window.addEventListener("unhandledrejection", function (e) {
+        fail("Promise hatası: " + (e.reason?.message || e.reason || "Bilinmeyen hata"));
+      });
+
+      async function boot() {
+        try {
+          const loaderCheck = await fetch("data/loader.js", { method: "HEAD" });
+          if (!loaderCheck.ok) {
+            fail("data/loader.js bulunamadı.");
+            return;
+          }
+
+          const romCheck = await fetch(rom, { method: "HEAD" });
+          if (!romCheck.ok) {
+            fail("ROM bulunamadı: " + rom);
+            return;
+          }
+
+          window.EJS_player = "#game";
+          window.EJS_core = core;
+          window.EJS_gameUrl = rom;
+          window.EJS_pathtodata = "data/";
+          window.EJS_startOnLoaded = true;
+
+          const script = document.createElement("script");
+          script.src = "data/loader.js";
+          script.onerror = function () {
+            fail("EmulatorJS loader yüklenemedi.");
+          };
+          document.body.appendChild(script);
+        } catch (err) {
+          fail("Başlatma hatası: " + (err.message || String(err)));
+        }
+      }
+
+      boot();
     })();
   </script>
-
-  <script src="data/loader.js"></script>
 </body>
 </html>
