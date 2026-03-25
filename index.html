@@ -182,9 +182,11 @@
         <h1 class="title">Retro Oyunlar</h1>
         <nav class="tabs" id="tabs"></nav>
         <div class="count-inline" id="gameCountInline">Oyunlar yükleniyor...</div>
-        <div class="search-icon">⌕</div>
+        <div class="search-icon" id="searchToggle">⌕</div>
       </div>
     </section>
+
+    <div id="searchBox" style="display:none;margin:10px 0;"><input id="searchInput" placeholder="Oyun ara..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;"></div>
 
     <main id="content">
       <div class="loading">Oyunlar yükleniyor...</div>
@@ -226,7 +228,23 @@
         button.addEventListener("click", () => {
           if (activeSystem === system.key) return;
           activeSystem = system.key;
-          buildTabs();
+          
+const searchToggle = document.getElementById("searchToggle");
+const searchBox = document.getElementById("searchBox");
+const searchInput = document.getElementById("searchInput");
+
+searchToggle.addEventListener("click", () => {
+  searchBox.style.display = searchBox.style.display === "none" ? "block" : "none";
+  searchInput.focus();
+});
+
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.toLowerCase();
+  const filtered = currentGames.filter(g => g.name.toLowerCase().includes(q));
+  renderGames(filtered);
+});
+
+buildTabs();
           loadPlatform(system.key);
         });
         tabsEl.appendChild(button);
@@ -354,7 +372,23 @@
       }
     }
 
-    buildTabs();
+    
+const searchToggle = document.getElementById("searchToggle");
+const searchBox = document.getElementById("searchBox");
+const searchInput = document.getElementById("searchInput");
+
+searchToggle.addEventListener("click", () => {
+  searchBox.style.display = searchBox.style.display === "none" ? "block" : "none";
+  searchInput.focus();
+});
+
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.toLowerCase();
+  const filtered = currentGames.filter(g => g.name.toLowerCase().includes(q));
+  renderGames(filtered);
+});
+
+buildTabs();
     loadPlatform(activeSystem);
   </script>
 </body>
