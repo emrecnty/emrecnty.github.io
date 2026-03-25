@@ -11,36 +11,18 @@ body{
   color:#fff;
   font-family:Arial,Helvetica,sans-serif;
 }
-#topbar{
-  padding:10px 14px;
-  background:#111;
-  border-bottom:1px solid #222;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-#title{
-  font-size:16px;
-  font-weight:700;
-  word-break:break-word;
-}
+
+
 #game{
   width:100%;
-  height:calc(100vh - 53px);
+  height:100vh;
 }
-a{
-  color:#fff;
-  text-decoration:none;
-  background:#333;
-  padding:6px 10px;
-  border-radius:6px;
-}
+
 </style>
 </head>
 <body>
 
-<div id="topbar">
-  <div id="title">Yükleniyor...</div>
+
   <a href="./">Ana Sayfa</a>
 </div>
 
@@ -57,12 +39,13 @@ if (!core || !rom) {
 }
 
 const fileName = decodeURIComponent(rom).split("/").pop() || rom;
-document.getElementById("title").innerText = fileName;
+
 
 window.EJS_player = "#game";
 window.EJS_core = core;
 window.EJS_gameUrl = decodeURIComponent(rom);
 window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+window.EJS_startOnLoaded = true;
 </script>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
