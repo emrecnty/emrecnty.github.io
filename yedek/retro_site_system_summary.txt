@@ -1,0 +1,92 @@
+RETRO OYUN SİTESİ SİSTEM ÖZETİ
+
+Proje amacı
+
+GitHub Pages üzerinde çalışan, EmulatorJS kullanan ve ROM klasörlerinden
+otomatik oyun listesi oluşturan minimal bir retro oyun sitesidir.
+
+Temel özellikler
+
+-   GitHub Pages üzerinde çalışır
+-   EmulatorJS CDN kullanır
+-   ROM klasörlerinden otomatik JSON üretir
+-   Site JSON dosyalarından oyun listesini okur
+-   Gereksiz GitHub API isteği yoktur
+-   Yeni ROM eklenince site otomatik güncellenir
+
+Klasör yapısı
+
+repo/ ├─ index.html ├─ play.html ├─ roms/ │ ├─ gb/ │ ├─ nes/ │ ├─ snes/
+│ ├─ genesis/ │ └─ mame2003/ ├─ data/ │ ├─ gb.json │ ├─ nes.json │ ├─
+snes.json │ ├─ genesis.json │ └─ mame2003.json └─ .github/workflows/ └─
+build-rom-json.yml
+
+ROM klasörleri
+
+ROM dosyaları sistem klasörlerine eklenir.
+
+Örnek:
+
+roms/gb/Tetris.gb roms/nes/Contra.nes roms/snes/Super Metroid.sfc
+roms/genesis/Sonic.bin roms/mame2003/1942.zip
+
+JSON üretimi
+
+GitHub Actions workflow’u roms klasörlerini tarar ve data klasörüne JSON
+üretir.
+
+Örnek JSON:
+
+data/nes.json
+
+[ “Contra.nes”, “Super Mario Bros.nes”]
+
+Site çalışma mantığı
+
+1)  Site açılır → data/gb.json yüklenir
+
+2)  Kullanıcı sistem seçer → ilgili JSON yüklenir örnek: data/nes.json
+
+3)  JSON içindeki dosyalar listelenir
+
+4)  Oyuna tıklanınca
+
+    play.html?core=nes&rom=roms/nes/Contra.nes
+
+    EmulatorJS başlatılır.
+
+EmulatorJS çekirdek eşleşmeleri
+
+gb → gb nes → nes snes → snes genesis → segaMD mame2003 → mame
+
+Not: MAME romları mame core ile açılır.
+
+Thumbnail sistemi
+
+Libretro thumbnails kullanılır.
+
+Performans özellikleri
+
+-   GitHub API kullanılmaz
+-   JSON statik dosyadır
+-   Gereksiz istek yoktur
+-   Site hızlı yüklenir
+
+Yeni ROM ekleme
+
+1)  ROM dosyasını klasöre ekle
+2)  GitHub’a commit et
+3)  GitHub Actions JSON’u günceller
+4)  Site otomatik güncellenir
+
+Sonuç
+
+Bu sistem:
+
+-   Minimal
+-   Stabil
+-   Otomatik liste oluşturan
+-   EmulatorJS tabanlı
+-   GitHub Pages ile çalışan
+
+bir retro oyun sitesidir.

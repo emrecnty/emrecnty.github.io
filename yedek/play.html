@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oyun</title>
+<style>
+body{
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:Arial,Helvetica,sans-serif;
+}
+#topbar{
+  padding:10px 14px;
+  background:#111;
+  border-bottom:1px solid #222;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+#title{
+  font-size:16px;
+  font-weight:700;
+  word-break:break-word;
+}
+#game{
+  width:100%;
+  height:calc(100vh - 53px);
+}
+a{
+  color:#fff;
+  text-decoration:none;
+  background:#333;
+  padding:6px 10px;
+  border-radius:6px;
+}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="title">Yükleniyor...</div>
+  <a href="./">Ana Sayfa</a>
+</div>
+
+<div id="game"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const core = params.get("core");
+const rom = params.get("rom");
+
+if (!core || !rom) {
+  document.getElementById("title").innerText = "Oyun bulunamadı";
+  throw new Error("Eksik parametre");
+}
+
+const fileName = decodeURIComponent(rom).split("/").pop() || rom;
+document.getElementById("title").innerText = fileName;
+
+window.EJS_player = "#game";
+window.EJS_core = core;
+window.EJS_gameUrl = decodeURIComponent(rom);
+window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+</script>
+
+<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+
+</body>
+</html>
