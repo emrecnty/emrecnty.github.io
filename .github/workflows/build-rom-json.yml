@@ -1,0 +1,75 @@
+name: Build ROM JSON
+
+on:
+  push:
+    paths:
+      - 'roms/**'
+      - '.github/workflows/build-rom-json.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-json:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repo'yu çek
+        uses: actions/checkout@v4
+
+      - name: Node kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: data klasörünü oluştur
+        run: mkdir -p data
+
+      - name: JSON üretici script yaz
+        run: |
+          cat > build-rom-json.js <<'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          const systems = ['gb', 'nes', 'snes', 'genesis', 'mame2003'];
+          const romsRoot = path.join(process.cwd(), 'roms');
+          const dataRoot = path.join(process.cwd(), 'data');
+
+          if (!fs.existsSync(dataRoot)) {
+            fs.mkdirSync(dataRoot, { recursive: true });
+          }
+
+          for (const system of systems) {
+            const dir = path.join(romsRoot, system);
+            let files = [];
+
+            if (fs.existsSync(dir)) {
+              files = fs.readdirSync(dir, { withFileTypes: true })
+                .filter(entry => entry.isFile())
+                .map(entry => entry.name)
+                .sort((a, b) => a.localeCompare(b, 'tr'));
+            }
+
+            fs.writeFileSync(
+              path.join(dataRoot, `${system}.json`),
+              JSON.stringify(files, null, 2),
+              'utf8'
+            );
+          }
+
+          console.log('JSON dosyaları üretildi.');
+          EOF
+
+      - name: JSON oluştur
+        run: node build-rom-json.js
+
+      - name: Değişiklik varsa commit et
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/*.json
+          git diff --cached --quiet || git commit -m "Update ROM JSON files"
+
+      - name: Push et
+        run: git push
