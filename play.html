@@ -1,1 +1,74 @@
-11111
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oyun</title>
+<style>
+body{
+margin:0;
+background:#000;
+color:#fff;
+font-family:Arial,Helvetica,sans-serif;
+}
+#topbar{
+padding:10px;
+background:#111;
+border-bottom:1px solid #222;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+#game{
+width:100%;
+height:calc(100vh - 50px);
+}
+a{
+color:#fff;
+text-decoration:none;
+background:#333;
+padding:6px 10px;
+border-radius:6px;
+}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+<div id="title">Loading...</div>
+<a href="./">Ana Sayfa</a>
+</div>
+
+<div id="game"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const system = params.get("system");
+const rom = params.get("rom");
+
+const coreMap = {
+gb: "gb",
+nes: "nes",
+snes: "snes",
+genesis: "segaMD",
+mame2003: "mame2003"
+};
+
+if(!system || !rom){
+document.getElementById("title").innerText = "Oyun bulunamadı";
+throw new Error("Parametre eksik");
+}
+
+document.getElementById("title").innerText = rom;
+
+window.EJS_player = "#game";
+window.EJS_core = coreMap[system];
+window.EJS_gameUrl = `roms/${system}/${rom}`;
+window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+
+</script>
+
+<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+
+</body>
+</html>
