@@ -274,19 +274,21 @@
       return `play.html?core=${encodeURIComponent(system.core)}&rom=${encodeURIComponent(romPath)}`;
     }
 
-    function thumbCandidates(game) {
-      const system = getSystem(game.system);
-      const encodedName = encodeURIComponent(
-        game.system === "mame2003" ? stripExtension(game.rom) : game.name
-      ) + ".png";
-      const base = `https://raw.githubusercontent.com/libretro-thumbnails/${system.thumbRepo}/master`;
+   function thumbCandidates(game) {
+  const system = getSystem(game.system);
 
-      return [
-        `${base}/Named_Snaps/${encodedName}`,
-        `${base}/Named_Boxarts/${encodedName}`,
-        `${base}/Named_Titles/${encodedName}`
-      ];
-    }
+  const encodedName = encodeURIComponent(
+    game.system === "mame2003" ? stripExtension(game.rom) : game.name
+  ) + ".png";
+
+  const base = `https://raw.githubusercontent.com/libretro-thumbnails/${system.thumbRepo}/master`;
+
+  return [
+    `${base}/Named_Snaps/${encodedName}`,
+    `${base}/Named_Boxarts/${encodedName}`,
+    `${base}/Named_Titles/${encodedName}`
+  ];
+}
 
     function createPlaceholder() {
       const div = document.createElement("div");
