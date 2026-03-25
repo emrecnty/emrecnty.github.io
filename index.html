@@ -209,6 +209,7 @@
 
     let activeSystem = "gb";
     let currentGames = [];
+    let mameNameMap = {};
 
     function stripExtension(filename) {
       return filename.replace(/\.[^.]+$/, "");
@@ -228,23 +229,7 @@
         button.addEventListener("click", () => {
           if (activeSystem === system.key) return;
           activeSystem = system.key;
-          
-const searchToggle = document.getElementById("searchToggle");
-const searchBox = document.getElementById("searchBox");
-const searchInput = document.getElementById("searchInput");
-
-searchToggle.addEventListener("click", () => {
-  searchBox.style.display = searchBox.style.display === "none" ? "block" : "none";
-  searchInput.focus();
-});
-
-searchInput.addEventListener("input", () => {
-  const q = searchInput.value.toLowerCase();
-  const filtered = currentGames.filter(g => g.name.toLowerCase().includes(q));
-  renderGames(filtered);
-});
-
-buildTabs();
+          buildTabs();
           loadPlatform(system.key);
         });
         tabsEl.appendChild(button);
@@ -257,10 +242,28 @@ buildTabs();
       return response.json();
     }
 
+    async function loadMameNames() {
+      try {
+        mameNameMap = await fetchJson("data/mame2003-names.json");
+      } catch (error) {
+        mameNameMap = {};
+      }
+    }
+
+    function getDisplayName(romFile, systemKey) {
+      const shortName = stripExtension(romFile);
+
+      if (systemKey === "mame2003" && mameNameMap[shortName]) {
+        return mameNameMap[shortName];
+      }
+
+      return shortName;
+    }
+
     function mergeGames(romList, systemKey) {
       return romList.map(romFile => ({
         rom: romFile,
-        name: stripExtension(romFile),
+        name: getDisplayName(romFile, systemKey),
         system: systemKey
       }));
     }
@@ -273,7 +276,9 @@ buildTabs();
 
     function thumbCandidates(game) {
       const system = getSystem(game.system);
-      const encodedName = encodeURIComponent(game.name) + ".png";
+      const encodedName = encodeURIComponent(
+        game.system === "mame2003" ? stripExtension(game.rom) : game.name
+      ) + ".png";
       const base = `https://raw.githubusercontent.com/libretro-thumbnails/${system.thumbRepo}/master`;
 
       return [
@@ -372,24 +377,26 @@ buildTabs();
       }
     }
 
-    
-const searchToggle = document.getElementById("searchToggle");
-const searchBox = document.getElementById("searchBox");
-const searchInput = document.getElementById("searchInput");
+    const searchToggle = document.getElementById("searchToggle");
+    const searchBox = document.getElementById("searchBox");
+    const searchInput = document.getElementById("searchInput");
 
-searchToggle.addEventListener("click", () => {
-  searchBox.style.display = searchBox.style.display === "none" ? "block" : "none";
-  searchInput.focus();
-});
+    searchToggle.addEventListener("click", () => {
+      searchBox.style.display = searchBox.style.display === "none" ? "block" : "none";
+      searchInput.focus();
+    });
 
-searchInput.addEventListener("input", () => {
-  const q = searchInput.value.toLowerCase();
-  const filtered = currentGames.filter(g => g.name.toLowerCase().includes(q));
-  renderGames(filtered);
-});
+    searchInput.addEventListener("input", () => {
+      const q = searchInput.value.toLowerCase();
+      const filtered = currentGames.filter(g => g.name.toLowerCase().includes(q));
+      renderGames(filtered);
+    });
 
-buildTabs();
-    loadPlatform(activeSystem);
+    (async function () {
+      await loadMameNames();
+      buildTabs();
+      loadPlatform(activeSystem);
+    })();
   </script>
 </body>
 </html>
