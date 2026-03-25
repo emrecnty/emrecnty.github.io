@@ -49,6 +49,12 @@ window.EJS_startOnLoaded = true;
 </script>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
-
+  
+<script>
+document.addEventListener("touchstart", () => {
+  if (navigator.vibrate) navigator.vibrate(60);
+});
+</script>
+  
 </body>
 </html>
