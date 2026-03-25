@@ -207,6 +207,7 @@
 
     let activeSystem = "gb";
     let currentGames = [];
+    let mameNameMap = {};
 
     function stripExtension(filename) {
       return filename.replace(/\.[^.]+$/, "");
@@ -238,6 +239,26 @@
       if (!response.ok) throw new Error(url + " yüklenemedi");
       return response.json();
     }
+
+    async function loadMameNames() {
+      try {
+        const response = await fetch("data/mame2003-names.json");
+        if (response.ok) {
+          mameNameMap = await response.json();
+        }
+      } catch (e) {
+        mameNameMap = {};
+      }
+    }
+
+    function getDisplayName(romFile, systemKey) {
+      const shortName = stripExtension(romFile);
+      if (systemKey === "mame2003" && mameNameMap[shortName]) {
+        return mameNameMap[shortName];
+      }
+      return shortName;
+    }
+
 
     function mergeGames(romList, systemKey) {
       return romList.map(romFile => ({
@@ -354,8 +375,11 @@
       }
     }
 
-    buildTabs();
-    loadPlatform(activeSystem);
+    (async function(){
+      await loadMameNames();
+      buildTabs();
+      loadPlatform(activeSystem);
+    })();
   </script>
 </body>
 </html>
