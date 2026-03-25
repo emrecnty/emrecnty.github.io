@@ -276,9 +276,7 @@
 
     function thumbCandidates(game) {
       const system = getSystem(game.system);
-      const encodedName = encodeURIComponent(
-        game.system === "mame2003" ? stripExtension(game.rom) : game.name
-      ) + ".png";
+      const encodedName = encodeURIComponent(game.name) + ".png";
       const base = `https://raw.githubusercontent.com/libretro-thumbnails/${system.thumbRepo}/master`;
 
       return [
