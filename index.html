@@ -243,10 +243,9 @@
     async function loadMameNames() {
       try {
         const response = await fetch("data/mame2003-names.json");
-        if (response.ok) {
-          mameNameMap = await response.json();
-        }
-      } catch (e) {
+        if (!response.ok) throw new Error("data/mame2003-names.json yüklenemedi");
+        mameNameMap = await response.json();
+      } catch (error) {
         mameNameMap = {};
       }
     }
@@ -259,11 +258,10 @@
       return shortName;
     }
 
-
     function mergeGames(romList, systemKey) {
       return romList.map(romFile => ({
         rom: romFile,
-        name: stripExtension(romFile),
+        name: getDisplayName(romFile, systemKey),
         system: systemKey
       }));
     }
@@ -375,7 +373,7 @@
       }
     }
 
-    (async function(){
+    (async function () {
       await loadMameNames();
       buildTabs();
       loadPlatform(activeSystem);
