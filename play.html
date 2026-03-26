@@ -51,25 +51,24 @@ window.EJS_startOnLoaded = true;
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 <script>
+function startFullscreen(){
+  const el = document.documentElement;
+
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock("landscape").catch(()=>{});
+  }
+}
+
+document.addEventListener("click", startFullscreen, {once:true});
+document.addEventListener("touchstart", startFullscreen, {once:true});
+
 document.addEventListener("touchstart", () => {
   if (navigator.vibrate) navigator.vibrate(60);
 });
 </script>
 
-  <script>
-async function startFullscreenLandscape(){
-  try{
-    if(document.documentElement.requestFullscreen){
-      await document.documentElement.requestFullscreen();
-    }
-
-    if(screen.orientation && screen.orientation.lock){
-      await screen.orientation.lock("landscape");
-    }
-  }catch(e){}
-}
-
-window.addEventListener("load", startFullscreenLandscape);
-</script>
 </body>
 </html>
