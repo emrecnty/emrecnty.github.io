@@ -56,5 +56,20 @@ document.addEventListener("touchstart", () => {
 });
 </script>
 
+  <script>
+async function startFullscreenLandscape(){
+  try{
+    if(document.documentElement.requestFullscreen){
+      await document.documentElement.requestFullscreen();
+    }
+
+    if(screen.orientation && screen.orientation.lock){
+      await screen.orientation.lock("landscape");
+    }
+  }catch(e){}
+}
+
+window.addEventListener("load", startFullscreenLandscape);
+</script>
 </body>
 </html>
