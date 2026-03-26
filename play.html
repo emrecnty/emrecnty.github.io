@@ -1,60 +1,255 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Oyun</title>
-<style>
-body{
-  margin:0;
-  background:#000;
-  color:#fff;
-  font-family:Arial,Helvetica,sans-serif;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>Oyun</title>
+  <style>
+    :root{
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --ui-bg: rgba(15,15,15,.58);
+      --ui-border: rgba(255,255,255,.14);
+      --ui-text: rgba(255,255,255,.95);
+      --shadow: 0 10px 26px rgba(0,0,0,.30);
+    }
 
+    *{
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
 
-#game{
-  width:100%;
-  height:100dvh;
-}
+    html, body{
+      margin:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      background:#000;
+      color:#fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
 
-</style>
+    body{
+      position:fixed;
+      inset:0;
+    }
+
+    #game{
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100dvh;
+      background:#000;
+    }
+
+    .topbar{
+      position:fixed;
+      top:calc(10px + var(--safe-top));
+      left:calc(10px + var(--safe-left));
+      right:calc(10px + var(--safe-right));
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      z-index:9999;
+      pointer-events:none;
+    }
+
+    .topbar > *{ pointer-events:auto; }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:42px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid var(--ui-border);
+      background:var(--ui-bg);
+      backdrop-filter: blur(10px);
+      color:var(--ui-text);
+      text-decoration:none;
+      font-size:14px;
+      font-weight:700;
+      box-shadow:var(--shadow);
+    }
+
+    .icon-btn{
+      min-width:42px;
+      padding:0 12px;
+    }
+
+    .notice{
+      position:fixed;
+      left:50%;
+      top:50%;
+      transform:translate(-50%, -50%);
+      width:min(360px, calc(100vw - 32px));
+      padding:18px;
+      border-radius:18px;
+      background:rgba(15,15,15,.88);
+      border:1px solid rgba(255,255,255,.12);
+      z-index:10000;
+      box-shadow:var(--shadow);
+      text-align:center;
+    }
+
+    .notice h1{
+      margin:0 0 8px;
+      font-size:18px;
+    }
+
+    .notice p{
+      margin:0;
+      opacity:.82;
+      line-height:1.5;
+      font-size:14px;
+    }
+
+    @media (max-width: 480px){
+      .chip.back .label{ display:none; }
+    }
+  </style>
 </head>
 <body>
+  <div id="game"></div>
 
+  <div class="topbar">
+    <a class="chip back" href="./"><span>←</span><span class="label" style="margin-left:8px;">Ana Sayfa</span></a>
+    <button class="chip icon-btn" id="fsBtn" type="button" aria-label="Tam ekran">⤢</button>
+  </div>
 
-  <a href="./">Ana Sayfa</a>
-</div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const core = params.get("core");
+    const rom = params.get("rom");
 
-<div id="game"></div>
+    if (!core || !rom) {
+      document.body.innerHTML = `
+        <div class="notice">
+          <h1>Oyun bulunamadı</h1>
+          <p>Eksik bağlantı parametresi var. Ana sayfaya dönüp oyunu yeniden aç.</p>
+        </div>`;
+      throw new Error("Eksik parametre");
+    }
 
-<script>
-const params = new URLSearchParams(location.search);
-const core = params.get("core");
-const rom = params.get("rom");
+    const decodedRom = decodeURIComponent(rom);
+    const gameName = decodedRom.split("/").pop() || "Oyun";
 
-if (!core || !rom) {
-  document.getElementById("title").innerText = "Oyun bulunamadı";
-  throw new Error("Eksik parametre");
-}
+    // EmulatorJS temel ayarları
+    window.EJS_player = "#game";
+    window.EJS_core = core;
+    window.EJS_gameUrl = decodedRom;
+    window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+    window.EJS_gameName = gameName;
+    window.EJS_startOnLoaded = true;
+    window.EJS_fullscreenOnLoaded = false;
+    window.EJS_alignStartButton = "center";
+    window.EJS_color = "#d8cfbf";
+    window.EJS_backgroundColor = "#000000";
 
-const fileName = decodeURIComponent(rom).split("/").pop() || rom;
+    // Mobilde daha rahat kullanım için özel sanal gamepad.
+    // Hedef: solda geniş sürükleme alanı, sağda büyük 4'lü buton bloğu,
+    // ortada erişilebilir Start / Select.
+    window.EJS_VirtualGamepadSettings = [
+      {
+        type: "zone",
+        id: "move",
+        location: "left",
+        left: "52%",
+        top: "58%",
+        joystickInput: false,
+        inputValues: [4, 5, 6, 7],
+        color: "#d8cfbf"
+      },
+      {
+        type: "button",
+        text: "Y",
+        id: "btn-y",
+        location: "right",
+        left: 44,
+        top: 8,
+        bold: true,
+        fontSize: 26,
+        input_value: 9
+      },
+      {
+        type: "button",
+        text: "X",
+        id: "btn-x",
+        location: "right",
+        left: 110,
+        top: 58,
+        bold: true,
+        fontSize: 26,
+        input_value: 1
+      },
+      {
+        type: "button",
+        text: "B",
+        id: "btn-b",
+        location: "right",
+        left: 44,
+        top: 110,
+        bold: true,
+        fontSize: 26,
+        input_value: 8
+      },
+      {
+        type: "button",
+        text: "A",
+        id: "btn-a",
+        location: "right",
+        left: -22,
+        top: 58,
+        bold: true,
+        fontSize: 26,
+        input_value: 0
+      },
+      {
+        type: "button",
+        text: "Select",
+        id: "btn-select",
+        location: "center",
+        left: -72,
+        top: 54,
+        fontSize: 14,
+        block: true,
+        input_value: 2
+      },
+      {
+        type: "button",
+        text: "Start",
+        id: "btn-start",
+        location: "center",
+        left: 14,
+        top: 54,
+        fontSize: 14,
+        block: true,
+        input_value: 3
+      }
+    ];
 
+    function requestFullscreen() {
+      const el = document.documentElement;
+      if (document.fullscreenElement) return;
+      if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+    }
 
-window.EJS_player = "#game";
-window.EJS_core = core;
-window.EJS_gameUrl = decodeURIComponent(rom);
-window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-window.EJS_startOnLoaded = true;
-</script>
+    document.getElementById("fsBtn").addEventListener("click", requestFullscreen);
 
-<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+    let firstTouchDone = false;
+    window.addEventListener("pointerdown", () => {
+      if (firstTouchDone) return;
+      firstTouchDone = true;
+      requestFullscreen();
+      if (navigator.vibrate) navigator.vibrate(12);
+    }, { once: true, passive: true });
+  </script>
 
-<script>
-document.addEventListener("touchstart", () => {
-  if (navigator.vibrate) navigator.vibrate(60);
-});
-</script>
-
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 </body>
 </html>
