@@ -18,15 +18,40 @@ body{
   height:100dvh;
 }
 
+#controls{
+  position:fixed;
+  top:10px;
+  left:10px;
+  display:flex;
+  gap:6px;
+  z-index:9999;
+}
+
+#controls button{
+  width:34px;
+  height:34px;
+  border:none;
+  border-radius:6px;
+  background:rgba(0,0,0,.6);
+  color:#fff;
+  font-size:16px;
+  cursor:pointer;
+}
+
+
 </style>
 </head>
 <body>
 
 
-  <a href="./">Ana Sayfa</a>
+
+<div id="controls">
+  <button id="backBtn">←</button>
+  <button id="fsBtn">⛶</button>
 </div>
 
 <div id="game"></div>
+
 
 <script>
 const params = new URLSearchParams(location.search);
@@ -54,6 +79,21 @@ window.EJS_startOnLoaded = true;
 document.addEventListener("touchstart", () => {
   if (navigator.vibrate) navigator.vibrate(60);
 });
+</script>
+
+
+<script>
+document.getElementById("backBtn").onclick = () => {
+  window.location.href = "./";
+};
+
+document.getElementById("fsBtn").onclick = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+};
 </script>
 
 </body>
