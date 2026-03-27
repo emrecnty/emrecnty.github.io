@@ -18,7 +18,6 @@
     height: 100dvh;
   }
 
-  /* Buton Konteynırı */
   .controls {
     position: absolute;
     top: 10px;
@@ -52,7 +51,7 @@
 
 <div class="controls">
   <div class="btn" onclick="history.back()">⬅ Geri</div>
-  <div class="btn" onclick="toggleFullScreen()">⛶ Tam Ekran</div>
+  <div class="btn" id="fs-btn" onclick="toggleFullScreen()">⛶ Tam Ekran</div>
 </div>
 
 <div id="game"></div>
@@ -73,23 +72,49 @@ window.EJS_gameUrl = decodeURIComponent(rom);
 window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 window.EJS_startOnLoaded = true;
 
-// Tam Ekran Fonksiyonu
-function toggleFullScreen() {
+// Gelişmiş Tam Ekran ve Yatay Mod Fonksiyonu
+async function toggleFullScreen() {
+  const btn = document.getElementById('fs-btn');
+  
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(err => {
+    try {
+      await document.documentElement.requestFullscreen();
+      
+      // Tam ekrana geçince ekranı yatay moda kilitlemeyi dene
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock("landscape").catch(err => {
+          console.log("Oryantasyon kilitleme desteklenmiyor veya reddedildi.");
+        });
+      }
+      btn.innerText = "⛶ Küçült";
+    } catch (err) {
       console.error(`Hata: ${err.message}`);
-    });
+    }
   } else {
-    document.exitFullscreen();
+    if (document.exitFullscreen) {
+      // Çıkarken yön kilidini kaldır
+      if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+      document.exitFullscreen();
+      btn.innerText = "⛶ Tam Ekran";
+    }
   }
 }
+
+// Tam ekran durumunu manuel (ESC tuşu vb.) değişimlerde de takip et
+document.addEventListener('fullscreenchange', () => {
+  const btn = document.getElementById('fs-btn');
+  if (!document.fullscreenElement) {
+    btn.innerText = "⛶ Tam Ekran";
+  }
+});
 </script>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 <script>
 document.addEventListener("touchstart", (e) => {
-  // Butonlara tıklandığında sadece titreşim ver, oyunu etkileme
   if (e.target.classList.contains('btn')) {
     if (navigator.vibrate) navigator.vibrate(40);
   }
