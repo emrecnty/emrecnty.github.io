@@ -172,6 +172,36 @@
       box-shadow:var(--shadow);
     }
 
+    /* YUKARI ÇIK BUTONU STİLİ */
+    #backToTopBtn {
+      display: none;
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 9999;
+      border: none;
+      outline: none;
+      background-color: var(--text);
+      color: var(--panel);
+      cursor: pointer;
+      padding: 15px;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: background-color 0.3s, opacity 0.3s, transform 0.3s;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.8;
+    }
+    #backToTopBtn:hover {
+      background-color: var(--muted);
+      opacity: 1;
+      transform: translateY(-3px);
+    }
   </style>
 </head>
 <body>
@@ -194,6 +224,8 @@
 
   </div>
 
+  <button id="backToTopBtn" title="Yukarı Çık">↑</button>
+
   <script>
     const SYSTEMS = [
       { key: "gb", label: "GB", core: "gb", thumbRepo: "Nintendo_-_Game_Boy" },
@@ -206,8 +238,9 @@
     const tabsEl = document.getElementById("tabs");
     const contentEl = document.getElementById("content");
     const gameCountInlineEl = document.getElementById("gameCountInline");
+    const backToTopBtn = document.getElementById("backToTopBtn");
 
-    // HAFIZA: En son seçilen sistemi al, yoksa "gb" yap
+    // HAFIZA: Sistem seçimi
     let activeSystem = localStorage.getItem("lastSystem") || "gb";
     let currentGames = [];
     let mameNameMap = {};
@@ -230,8 +263,7 @@
         button.addEventListener("click", () => {
           if (activeSystem === system.key) return;
           activeSystem = system.key;
-          // HAFIZA: Yeni seçilen sistemi kaydet
-          localStorage.setItem("lastSystem", activeSystem);
+          localStorage.setItem("lastSystem", activeSystem); // HAFIZA KAYDI
           buildTabs();
           loadPlatform(system.key);
         });
@@ -255,11 +287,9 @@
 
     function getDisplayName(romFile, systemKey) {
       const shortName = stripExtension(romFile);
-
       if (systemKey === "mame2003" && mameNameMap[shortName]) {
         return mameNameMap[shortName];
       }
-
       return shortName;
     }
 
@@ -281,7 +311,6 @@
       const system = getSystem(game.system);
       const encodedName = encodeURIComponent(game.name) + ".png";
       const base = `https://raw.githubusercontent.com/libretro-thumbnails/${system.thumbRepo}/master`;
-
       return [
         `${base}/Named_Snaps/${encodedName}`,
         `${base}/Named_Boxarts/${encodedName}`,
@@ -299,24 +328,18 @@
     function setPreferredThumb(img, game) {
       const urls = thumbCandidates(game);
       let index = 0;
-
       function tryNext() {
         if (index >= urls.length) {
           const placeholder = createPlaceholder();
           img.replaceWith(placeholder);
           return;
         }
-
         const url = urls[index++];
         const probe = new Image();
-        probe.onload = () => {
-          img.src = url;
-          img.alt = game.name;
-        };
+        probe.onload = () => { img.src = url; img.alt = game.name; };
         probe.onerror = () => tryNext();
         probe.src = url;
       }
-
       tryNext();
     }
 
@@ -325,16 +348,14 @@
         contentEl.innerHTML = '<div class="empty">Bu klasörde oyun yok.</div>';
         return;
       }
-
       const grid = document.createElement("div");
       grid.className = "grid";
-
       for (const game of games) {
         const card = document.createElement("a");
         card.className = "card";
         card.href = getPlayUrl(game);
         
-        // HAFIZA: Bir oyuna tıklandığında ekranın o anki yüksekliğini kaydet
+        // HAFIZA: Konum kaydı
         card.addEventListener("click", () => {
           localStorage.setItem("scrollPos", window.scrollY);
         });
@@ -342,38 +363,30 @@
         const img = document.createElement("img");
         img.className = "thumb";
         img.loading = "lazy";
-
         const body = document.createElement("div");
         body.className = "card-body";
-
         const title = document.createElement("p");
         title.className = "game-name";
         title.textContent = game.name;
-
         const rom = document.createElement("div");
         rom.className = "game-rom";
         rom.textContent = game.rom;
-
         body.appendChild(title);
         body.appendChild(rom);
-
         card.appendChild(img);
         card.appendChild(body);
         grid.appendChild(card);
-
         setPreferredThumb(img, game);
       }
-
       contentEl.innerHTML = "";
       contentEl.appendChild(grid);
 
-      // HAFIZA: Oyunlar listelendikten sonra, eğer kayıtlı bir konum varsa oraya kaydır
+      // HAFIZA: Geri dönüşte konuma git
       const savedPos = localStorage.getItem("scrollPos");
       if (savedPos) {
-        // Tarayıcının render işlemini bitirmesi için çok kısa bir süre bekletiyoruz
         setTimeout(() => {
           window.scrollTo(0, parseInt(savedPos));
-          localStorage.removeItem("scrollPos"); // Tekrar tıklanana kadar temizle
+          localStorage.removeItem("scrollPos");
         }, 50);
       }
     }
@@ -381,7 +394,6 @@
     async function loadPlatform(systemKey) {
       gameCountInlineEl.textContent = "Oyunlar yükleniyor...";
       contentEl.innerHTML = '<div class="loading">Oyunlar yükleniyor...</div>';
-
       try {
         const romList = await fetchJson(`data/${systemKey}.json`);
         currentGames = mergeGames(romList, systemKey);
@@ -393,20 +405,29 @@
       }
     }
 
+    // YUKARI ÇIK BUTONU ÇALIŞMA MANTIĞI
+    window.onscroll = function() {
+      if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+        backToTopBtn.style.display = "flex";
+      } else {
+        backToTopBtn.style.display = "none";
+      }
+    };
+    backToTopBtn.onclick = function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     const searchToggle = document.getElementById("searchToggle");
     const searchBox = document.getElementById("searchBox");
     const searchInput = document.getElementById("searchInput");
-
-    searchToggle.addEventListener("click", () => {
+    searchToggle.onclick = () => {
       searchBox.style.display = searchBox.style.display === "none" ? "block" : "none";
       searchInput.focus();
-    });
-
-    searchInput.addEventListener("input", () => {
+    };
+    searchInput.oninput = () => {
       const q = searchInput.value.toLowerCase();
-      const filtered = currentGames.filter(g => g.name.toLowerCase().includes(q));
-      renderGames(filtered);
-    });
+      renderGames(currentGames.filter(g => g.name.toLowerCase().includes(q)));
+    };
 
     (async function () {
       await loadMameNames();
