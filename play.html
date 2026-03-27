@@ -4,83 +4,44 @@
   <meta charset="utf-8">
   <title>Retro Oyun Oynatıcı</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  
   <style>
-    body, html {
-      margin: 0; padding: 0; width: 100%; height: 100%;
-      background-color: #000; overflow: hidden;
-      font-family: sans-serif;
-    }
-
-    /* 2. HASSASİYETİ ARTIRAN CSS */
-    #game {
-      width: 100%; height: 100%;
-      touch-action: none; /* Tarayıcı müdahalesini kapatır */
-      -webkit-user-select: none;
-      user-select: none;
-    }
-
-    /* 3. BASMA ALANINI (HITBOX) GENİŞLETME */
-    /* EmulatorJS butonlarını hedef alır */
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; overflow: hidden; }
+    #game { width: 100%; height: 100%; touch-action: none; -webkit-user-select: none; user-select: none; }
+    
+    /* Dokunmatik hassasiyet ayarı */
     .ejs-touch-button {
-      padding: 25px !important; /* Görünmez tıklama alanını 25px dışa açar */
-      margin: -25px !important;  /* Yerleşimi sabit tutar */
-      background-clip: content-box !important; /* Rengin sadece ortada kalmasını sağlar */
-      transition: transform 0.05s active;
+      padding: 25px !important; 
+      margin: -25px !important;
+      background-clip: content-box !important;
     }
 
-    .ejs-touch-button:active {
-      transform: scale(1.15); /* Basıldığında görsel geri bildirim */
-      filter: brightness(1.3);
-    }
-
-    /* Geri Butonu Stili */
     .back-btn {
-      position: absolute; top: 10px; left: 10px;
-      z-index: 9999; padding: 10px 15px;
-      background: rgba(0,0,0,0.6); color: #fff;
-      border: 1px solid #555; border-radius: 8px;
-      text-decoration: none; font-size: 14px;
+      position: absolute; top: 10px; left: 10px; z-index: 9999; 
+      padding: 10px 15px; background: rgba(0,0,0,0.6); color: #fff;
+      border: 1px solid #555; border-radius: 8px; text-decoration: none; font-size: 14px;
     }
   </style>
 </head>
 <body>
 
   <a href="javascript:history.back()" class="back-btn">← Geri</a>
-
   <div id="game"></div>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const core = urlParams.get('core');
-    const rom = urlParams.get('rom');
+    const rom = urlParams.get('rom'); // index.html zaten tam yolu gönderiyor
 
-    if (!core || !rom) {
-      alert("Hata: Core veya ROM bulunamadı!");
-      window.location.href = 'index.html';
-    }
-
-    // 4. EMULATORJS AYARLARI
     window.EJS_settings = {
       dataUrl: "https://raw.githack.com/EmulatorJS/EmulatorJS/main/data/",
       core: core,
-      rom: rom,
-      adUrl: "",
+      rom: rom, // Hatayı burada düzelttim, direkt gelen yolu kullanıyor
       startOnLoaded: true,
-      
-      // Mobil Kontrol Ayarları
-      mobileButtonsSize: 60,     // Butonları baş parmağa uygun boyuta getirir
-      vibration: true,           // Nostalgia.NES hissi için titreşim
-      touchInputMode: "gamepad", // Saf gamepad modu
-      
-      // Ekran Ayarları
-      canChangeExternalPosition: false,
-      externalPosition: "bottom",
-      screenshotEnabled: false,
-      stateEnabled: true
+      mobileButtonsSize: 60,
+      vibration: true,
+      touchInputMode: "gamepad"
     };
   </script>
-  
   <script src="https://raw.githack.com/EmulatorJS/EmulatorJS/main/data/loader.js"></script>
 
 </body>
