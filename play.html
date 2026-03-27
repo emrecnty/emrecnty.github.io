@@ -2,42 +2,36 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Oyun Oynanıyor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oyun</title>
 <style>
-  body, html {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    background: #000;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-  }
-
-  #game {
-    width: 100vw;
-    height: 100dvh;
-  }
-
+  body { margin: 0; background: #000; color: #fff; font-family: Arial, sans-serif; overflow: hidden; }
+  #game { width: 100%; height: 100dvh; }
+  
+  /* Görseldeki Geri Butonu Stili */
   .back-btn {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 1000;
-    background: rgba(0,0,0,0.5);
-    color: white;
-    padding: 8px 15px;
-    text-decoration: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 16px;
     border-radius: 20px;
     font-size: 14px;
-    border: 1px solid rgba(255,255,255,0.3);
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
   }
 </style>
 </head>
 <body>
 
-<a href="./" class="back-btn">← Geri</a>
+<button class="back-btn" onclick="history.back()">← Geri</button>
+
 <div id="game"></div>
 
 <script>
@@ -46,75 +40,31 @@
   const rom = params.get("rom");
 
   if (!core || !rom) {
-    alert("Oyun bilgileri eksik!");
+    alert("Oyun bulunamadı!");
     window.location.href = "./";
   }
 
-  // EmulatorJS Ayarları
   window.EJS_player = "#game";
   window.EJS_core = core;
   window.EJS_gameUrl = decodeURIComponent(rom);
   window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-  
-  // Otomatik Başlatma ve Tam Ekran Fonksiyonu
-  window.EJS_onGameStart = function() {
-    const elem = document.documentElement;
-    
-    // Tam ekran isteği
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) {
-      elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) {
-      elem.msRequestFullscreen();
-    }
 
-    // Ekranı Yatay Moduna Kilitleme (Mobil cihazlar için)
-    if (screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock('landscape').catch(function(error) {
-        console.log("Ekran kilitleme desteklenmiyor veya reddedildi.");
-      });
-    }
-  };
+  // --- MOBİLDE OTOMATİK YATAY VE TAM EKRAN YAPMA ---
+  async function startFullscreen() {
+    try {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) await elem.requestFullscreen();
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock('landscape');
+      }
+    } catch (err) { console.log("Ekran döndürme desteklenmiyor."); }
+  }
 
-  // Titreşim desteği
-  document.addEventListener("touchstart", () => {
-    if (navigator.vibrate) navigator.vibrate(30);
-  }, {passive: true});
+  // Kullanıcı "OYUNU BAŞLAT" dediğinde veya ekrana ilk dokunduğunda tetiklenir
+  document.addEventListener("click", startFullscreen, { once: true });
 </script>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
-<script>
-async function makeLandscape() {
-  try {
-    // 1. Önce tam ekrana geçiş yap (Orientation kilidi için şarttır)
-    const elem = document.documentElement;
-    if (elem.requestFullscreen) {
-      await elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) {
-      await elem.webkitRequestFullscreen();
-    }
-
-    // 2. Ekranı yatay (landscape) moduna kilitle
-    if (screen.orientation && screen.orientation.lock) {
-      await screen.orientation.lock('landscape');
-    }
-  } catch (err) {
-    console.error("Tam ekran veya yatay mod hatası:", err);
-  }
-}
-
-// Kullanıcı ekranda herhangi bir yere dokunduğunda tetiklenir
-// Tarayıcılar güvenlik nedeniyle bu işlemi kullanıcı etkileşimi olmadan engeller
-document.addEventListener('click', function() {
-  makeLandscape();
-}, { once: true }); // Sadece ilk dokunuşta çalışması yeterli
-
-document.addEventListener('touchstart', function() {
-  makeLandscape();
-}, { once: true });
-</script>
-  
 </body>
 </html>
