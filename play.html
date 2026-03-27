@@ -2,99 +2,686 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>Oyun</title>
 <style>
-body{
-  margin:0;
-  background:#000;
-  color:#fff;
-  font-family:Arial,Helvetica,sans-serif;
-}
+  :root{
+    --safe-top:max(12px, env(safe-area-inset-top));
+    --safe-right:max(12px, env(safe-area-inset-right));
+    --safe-bottom:max(12px, env(safe-area-inset-bottom));
+    --safe-left:max(12px, env(safe-area-inset-left));
+    --control-alpha:.42;
+    --outline:rgba(255,255,255,.22);
+    --fill:rgba(255,255,255,.14);
+    --fill-active:rgba(255,255,255,.28);
+    --text:rgba(255,255,255,.95);
+    --shadow:0 8px 24px rgba(0,0,0,.35);
+  }
 
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none}
+  html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden;font-family:Arial,Helvetica,sans-serif}
+  body{position:fixed;inset:0}
 
-#game{
-  width:100%;
-  height:100dvh;
-}
+  #game-wrap{position:fixed;inset:0;background:#000}
+  #game{width:100%;height:100dvh}
 
-#controls{
-  position:fixed;
-  top:10px;
-  left:10px;
-  display:flex;
-  gap:6px;
-  z-index:9999;
-}
+  #backLink{
+    position:fixed;
+    top:var(--safe-top);
+    left:var(--safe-left);
+    z-index:50;
+    color:#fff;
+    text-decoration:none;
+    background:rgba(0,0,0,.52);
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:999px;
+    padding:8px 12px;
+    font-size:14px;
+    line-height:1;
+    backdrop-filter:blur(10px);
+  }
 
-#controls button{
-  width:34px;
-  height:34px;
-  border:none;
-  border-radius:6px;
-  background:rgba(0,0,0,.6);
-  color:#fff;
-  font-size:16px;
-  cursor:pointer;
-}
+  #mobileControls{
+    position:fixed;
+    inset:0;
+    z-index:40;
+    pointer-events:none;
+    opacity:1;
+  }
 
+  #mobileControls .interactive{pointer-events:auto}
 
+  .cluster{
+    position:fixed;
+    bottom:calc(var(--safe-bottom) + 26px);
+    display:block;
+  }
+  .cluster.left{left:calc(var(--safe-left) + 10px)}
+  .cluster.right{right:calc(var(--safe-right) + 10px)}
+
+  .dpad-wrap{
+    width:min(32vw, 188px);
+    height:min(32vw, 188px);
+    position:relative;
+    filter:drop-shadow(var(--shadow));
+  }
+
+  .dpad-base{
+    position:absolute;
+    inset:0;
+    border-radius:26px;
+    opacity:var(--control-alpha);
+  }
+
+  .dpad-piece{
+    position:absolute;
+    background:var(--fill);
+    border:1px solid var(--outline);
+    border-radius:22px;
+    backdrop-filter:blur(8px);
+  }
+  .dpad-piece.vertical{left:31%;right:31%;top:0;bottom:0}
+  .dpad-piece.horizontal{top:31%;bottom:31%;left:0;right:0}
+  .dpad-center{
+    position:absolute;
+    inset:34%;
+    border-radius:20px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+    backdrop-filter:blur(8px);
+  }
+  .dpad-hit{
+    position:absolute;
+    inset:-14px;
+    border-radius:32px;
+  }
+  .dpad-dir{
+    position:absolute;
+    font-weight:700;
+    color:var(--text);
+    opacity:.72;
+    text-shadow:0 1px 3px rgba(0,0,0,.45);
+    font-size:18px;
+  }
+  .dpad-dir.up{top:10px;left:50%;transform:translateX(-50%)}
+  .dpad-dir.down{bottom:10px;left:50%;transform:translateX(-50%)}
+  .dpad-dir.left{left:10px;top:50%;transform:translateY(-50%)}
+  .dpad-dir.right{right:10px;top:50%;transform:translateY(-50%)}
+
+  .shoulder-row{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:calc(100% + 10px);
+    display:flex;
+    justify-content:flex-start;
+    gap:10px;
+  }
+  .cluster.right .shoulder-row{justify-content:flex-end}
+
+  .btn{
+    position:absolute;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-width:58px;
+    min-height:58px;
+    padding:0;
+    border-radius:999px;
+    border:1px solid var(--outline);
+    background:var(--fill);
+    color:var(--text);
+    font-weight:700;
+    font-size:18px;
+    box-shadow:var(--shadow);
+    backdrop-filter:blur(10px);
+  }
+
+  .btn.small{
+    min-width:64px;
+    min-height:34px;
+    border-radius:999px;
+    font-size:14px;
+    padding:0 12px;
+    position:relative;
+  }
+
+  .btn.wide{
+    min-width:68px;
+    min-height:68px;
+  }
+
+  .btn.active,
+  .mode-toggle.active,
+  .dpad-piece.active,
+  .dpad-center.active{
+    background:var(--fill-active);
+  }
+
+  .face-wrap{
+    position:relative;
+    width:min(36vw, 230px);
+    height:min(36vw, 230px);
+  }
+
+  .face-wrap.layout-row{width:min(44vw, 260px);height:88px}
+  .face-wrap.layout-grid{width:min(44vw, 270px);height:150px}
+
+  .system-label{
+    position:absolute;
+    top:-18px;
+    right:0;
+    color:rgba(255,255,255,.45);
+    font-size:12px;
+    letter-spacing:.08em;
+  }
+
+  .bottom-bar{
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:calc(var(--safe-bottom) + 8px);
+    z-index:45;
+    display:flex;
+    gap:10px;
+    pointer-events:auto;
+  }
+
+  .bottom-bar .mini{
+    min-width:70px;
+    min-height:30px;
+    border-radius:999px;
+    font-size:12px;
+    padding:0 12px;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .mode-toggle{
+    position:absolute;
+    bottom:calc(100% + 10px);
+    right:0;
+    min-width:86px;
+    min-height:34px;
+    border-radius:999px;
+    font-size:13px;
+    background:rgba(0,0,0,.46);
+  }
+
+  .hidden{display:none !important}
+
+  @media (min-width: 900px){
+    #mobileControls{display:none}
+  }
 </style>
 </head>
 <body>
+  <a id="backLink" href="./">Ana Sayfa</a>
 
+  <div id="game-wrap">
+    <div id="game"></div>
+  </div>
 
+  <div id="mobileControls" aria-hidden="true">
+    <div class="cluster left interactive" id="leftCluster">
+      <div class="shoulder-row" id="leftShoulder"></div>
+      <div class="dpad-wrap" id="dpadWrap">
+        <div class="dpad-base"></div>
+        <div class="dpad-piece vertical" id="dpadVertical"></div>
+        <div class="dpad-piece horizontal" id="dpadHorizontal"></div>
+        <div class="dpad-center" id="dpadCenter"></div>
+        <div class="dpad-dir up">▲</div>
+        <div class="dpad-dir left">◀</div>
+        <div class="dpad-dir right">▶</div>
+        <div class="dpad-dir down">▼</div>
+        <div class="dpad-hit interactive" id="dpadHit"></div>
+      </div>
+    </div>
 
-<div id="controls">
-  <button id="backBtn">←</button>
-  <button id="fsBtn">⛶</button>
-</div>
+    <div class="cluster right interactive" id="rightCluster">
+      <div class="shoulder-row" id="rightShoulder"></div>
+      <div class="face-wrap" id="faceWrap">
+        <div class="system-label" id="systemLabel"></div>
+        <button class="btn mode-toggle hidden interactive" id="modeToggle" type="button">6 TUŞ</button>
+      </div>
+    </div>
 
-<div id="game"></div>
-
+    <div class="bottom-bar interactive" id="bottomBar"></div>
+  </div>
 
 <script>
 const params = new URLSearchParams(location.search);
-const core = params.get("core");
-const rom = params.get("rom");
+const core = params.get('core');
+const rom = params.get('rom');
 
 if (!core || !rom) {
-  document.getElementById("title").innerText = "Oyun bulunamadı";
-  throw new Error("Eksik parametre");
+  document.body.innerHTML = '<div style="padding:20px;color:#fff">Oyun bulunamadı</div>';
+  throw new Error('Eksik parametre');
 }
 
-const fileName = decodeURIComponent(rom).split("/").pop() || rom;
+const systemType = (() => {
+  switch (core) {
+    case 'nes':
+    case 'gb':
+    case 'gba':
+    case 'gbc':
+    case 'sms':
+    case 'gg':
+      return 'nes';
+    case 'snes':
+      return 'snes';
+    case 'segaMD':
+      return 'genesis';
+    case 'mame':
+      return 'mame';
+    default:
+      return 'nes';
+  }
+})();
 
+const CONTROL_KEYS = {
+  UP: 'ArrowUp',
+  DOWN: 'ArrowDown',
+  LEFT: 'ArrowLeft',
+  RIGHT: 'ArrowRight',
+  A: 'z',
+  B: 'x',
+  X: 'a',
+  Y: 's',
+  L1: 'q',
+  R1: 'e',
+  SELECT: 'Shift',
+  START: 'Enter',
+  TURBO_A: 'c',
+  TURBO_B: 'v',
+  C: 'c',
+  Z: 'v',
+  D: 'a',
+  E: 's',
+  F: 'd'
+};
 
-window.EJS_player = "#game";
+window.EJS_player = '#game';
 window.EJS_core = core;
 window.EJS_gameUrl = decodeURIComponent(rom);
-window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
 window.EJS_startOnLoaded = true;
-</script>
-
-<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
-
-<script>
-document.addEventListener("touchstart", () => {
-  if (navigator.vibrate) navigator.vibrate(60);
-});
-</script>
-
-
-<script>
-document.getElementById("backBtn").onclick = () => {
-  window.location.href = "./";
+window.EJS_fullscreenOnLoaded = true;
+window.EJS_disableDatabases = true;
+window.EJS_VirtualGamepadSettings = [];
+window.EJS_controlScheme = core === 'mame' ? 'mame' : core;
+window.EJS_disableAutoLang = true;
+window.EJS_language = 'tr-TR';
+window.EJS_buttons = {
+  play: true,
+  fullscreen: true,
+  saveState: true,
+  loadState: true,
+  screenRecord: false,
+  gamepad: false,
+  cheat: false,
+  volume: true,
+  settings: true,
+  quickSave: true,
+  quickLoad: true
 };
-
-document.getElementById("fsBtn").onclick = () => {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
-  } else {
-    document.exitFullscreen();
+window.EJS_defaultControls = {
+  0: {
+    0: { value: CONTROL_KEYS.B, value2: 'BUTTON_2' },
+    1: { value: CONTROL_KEYS.X, value2: 'BUTTON_4' },
+    2: { value: CONTROL_KEYS.SELECT.toLowerCase(), value2: 'SELECT' },
+    3: { value: 'enter', value2: 'START' },
+    4: { value: 'up arrow', value2: 'DPAD_UP' },
+    5: { value: 'down arrow', value2: 'DPAD_DOWN' },
+    6: { value: 'left arrow', value2: 'DPAD_LEFT' },
+    7: { value: 'right arrow', value2: 'DPAD_RIGHT' },
+    8: { value: CONTROL_KEYS.A, value2: 'BUTTON_1' },
+    9: { value: CONTROL_KEYS.Y, value2: 'BUTTON_3' },
+    10: { value: CONTROL_KEYS.L1.toLowerCase(), value2: 'LEFT_TOP_SHOULDER' },
+    11: { value: CONTROL_KEYS.R1.toLowerCase(), value2: 'RIGHT_TOP_SHOULDER' },
+    12: { value: 'tab', value2: 'LEFT_BOTTOM_SHOULDER' },
+    13: { value: 'r', value2: 'RIGHT_BOTTOM_SHOULDER' }
   }
 };
-</script>
 
+const layoutConfig = {
+  nes: {
+    label: 'NES',
+    modeToggle: false,
+    shouldersLeft: [],
+    shouldersRight: [],
+    faceClass: '',
+    buttons: [
+      { id: 'TB', label: 'TB', key: CONTROL_KEYS.TURBO_B, x: '50%', y: '10%', size: 'wide', turboTarget: CONTROL_KEYS.B },
+      { id: 'TA', label: 'TA', key: CONTROL_KEYS.TURBO_A, x: '17%', y: '42%', size: 'wide', turboTarget: CONTROL_KEYS.A },
+      { id: 'B', label: 'B', key: CONTROL_KEYS.B, x: '83%', y: '42%', size: 'wide' },
+      { id: 'A', label: 'A', key: CONTROL_KEYS.A, x: '50%', y: '75%', size: 'wide' }
+    ],
+    bottomButtons: [
+      { id: 'SELECT', label: 'SELECT', key: CONTROL_KEYS.SELECT, mini: true },
+      { id: 'START', label: 'START', key: CONTROL_KEYS.START, mini: true }
+    ]
+  },
+  snes: {
+    label: 'SNES',
+    modeToggle: false,
+    shouldersLeft: [{ id: 'L1', label: 'L1', key: CONTROL_KEYS.L1 }],
+    shouldersRight: [{ id: 'R1', label: 'R1', key: CONTROL_KEYS.R1 }],
+    faceClass: '',
+    buttons: [
+      { id: 'Y', label: 'Y', key: CONTROL_KEYS.Y, x: '50%', y: '10%', size: 'wide' },
+      { id: 'X', label: 'X', key: CONTROL_KEYS.X, x: '17%', y: '42%', size: 'wide' },
+      { id: 'B', label: 'B', key: CONTROL_KEYS.B, x: '83%', y: '42%', size: 'wide' },
+      { id: 'A', label: 'A', key: CONTROL_KEYS.A, x: '50%', y: '75%', size: 'wide' }
+    ],
+    bottomButtons: [
+      { id: 'SELECT', label: 'SELECT', key: CONTROL_KEYS.SELECT, mini: true },
+      { id: 'START', label: 'START', key: CONTROL_KEYS.START, mini: true }
+    ]
+  },
+  genesis: {
+    label: 'GENESIS',
+    modeToggle: true,
+    shouldersLeft: [],
+    shouldersRight: [],
+    faceClass: 'layout-grid',
+    baseButtons: [
+      { id: 'A', label: 'A', key: CONTROL_KEYS.A, x: '16%', y: '62%', size: 'wide' },
+      { id: 'B', label: 'B', key: CONTROL_KEYS.B, x: '50%', y: '62%', size: 'wide' },
+      { id: 'C', label: 'C', key: CONTROL_KEYS.C, x: '84%', y: '62%', size: 'wide' }
+    ],
+    extraButtons: [
+      { id: 'X', label: 'X', key: CONTROL_KEYS.X, x: '16%', y: '18%', size: 'wide' },
+      { id: 'Y', label: 'Y', key: CONTROL_KEYS.Y, x: '50%', y: '18%', size: 'wide' },
+      { id: 'Z', label: 'Z', key: CONTROL_KEYS.Z, x: '84%', y: '18%', size: 'wide' }
+    ],
+    bottomButtons: [
+      { id: 'MODE', label: 'MODE', toggle: true, mini: true },
+      { id: 'START', label: 'START', key: CONTROL_KEYS.START, mini: true }
+    ]
+  },
+  mame: {
+    label: 'MAME',
+    modeToggle: true,
+    shouldersLeft: [],
+    shouldersRight: [],
+    faceClass: 'layout-grid',
+    baseButtons: [
+      { id: 'A', label: 'A', key: CONTROL_KEYS.A, x: '16%', y: '62%', size: 'wide' },
+      { id: 'B', label: 'B', key: CONTROL_KEYS.B, x: '50%', y: '62%', size: 'wide' },
+      { id: 'C', label: 'C', key: CONTROL_KEYS.C, x: '84%', y: '62%', size: 'wide' }
+    ],
+    extraButtons: [
+      { id: 'D', label: 'D', key: CONTROL_KEYS.D, x: '16%', y: '18%', size: 'wide' },
+      { id: 'E', label: 'E', key: CONTROL_KEYS.E, x: '50%', y: '18%', size: 'wide' },
+      { id: 'F', label: 'F', key: CONTROL_KEYS.F, x: '84%', y: '18%', size: 'wide' }
+    ],
+    bottomButtons: [
+      { id: 'MODE', label: 'MODE', toggle: true, mini: true },
+      { id: 'START', label: 'START', key: CONTROL_KEYS.START, mini: true },
+      { id: 'COIN', label: 'COIN', key: CONTROL_KEYS.SELECT, mini: true }
+    ]
+  }
+};
+
+const state = {
+  modeExpanded: false,
+  activeKeys: new Set(),
+  pointerBindings: new Map(),
+  turboTimers: new Map(),
+  dpadDirections: new Set(),
+  dpadPointerId: null
+};
+
+const mobileControls = document.getElementById('mobileControls');
+const faceWrap = document.getElementById('faceWrap');
+const modeToggle = document.getElementById('modeToggle');
+const systemLabel = document.getElementById('systemLabel');
+const leftShoulder = document.getElementById('leftShoulder');
+const rightShoulder = document.getElementById('rightShoulder');
+const bottomBar = document.getElementById('bottomBar');
+const dpadHit = document.getElementById('dpadHit');
+const dpadVertical = document.getElementById('dpadVertical');
+const dpadHorizontal = document.getElementById('dpadHorizontal');
+const dpadCenter = document.getElementById('dpadCenter');
+
+function isTouchDevice() {
+  return matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+}
+
+function dispatchKey(type, key) {
+  const codeMap = {
+    ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight',
+    Enter: 'Enter', Shift: 'ShiftLeft', Tab: 'Tab',
+    a: 'KeyA', b: 'KeyB', c: 'KeyC', d: 'KeyD', e: 'KeyE', f: 'KeyF', q: 'KeyQ', s: 'KeyS', v: 'KeyV', x: 'KeyX', z: 'KeyZ'
+  };
+  const event = new KeyboardEvent(type, {
+    key,
+    code: codeMap[key] || '',
+    bubbles: true,
+    cancelable: true
+  });
+  document.dispatchEvent(event);
+  window.dispatchEvent(event);
+}
+
+function vibrate(ms = 14) {
+  if (navigator.vibrate) navigator.vibrate(ms);
+}
+
+function pressKey(key) {
+  if (!key || state.activeKeys.has(key)) return;
+  state.activeKeys.add(key);
+  dispatchKey('keydown', key);
+}
+
+function releaseKey(key) {
+  if (!key || !state.activeKeys.has(key)) return;
+  state.activeKeys.delete(key);
+  dispatchKey('keyup', key);
+}
+
+function startTurbo(targetKey, uniqueId) {
+  pressKey(targetKey);
+  const timer = setInterval(() => {
+    releaseKey(targetKey);
+    pressKey(targetKey);
+  }, 55);
+  state.turboTimers.set(uniqueId, { timer, targetKey });
+}
+
+function stopTurbo(uniqueId) {
+  const info = state.turboTimers.get(uniqueId);
+  if (!info) return;
+  clearInterval(info.timer);
+  releaseKey(info.targetKey);
+  state.turboTimers.delete(uniqueId);
+}
+
+function createButtonElement(buttonConfig, className = 'btn') {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = `${className} interactive${buttonConfig.size === 'wide' ? ' wide' : ''}`;
+  btn.textContent = buttonConfig.label;
+  if (buttonConfig.x) btn.style.left = `calc(${buttonConfig.x} - 34px)`;
+  if (buttonConfig.y) btn.style.top = `calc(${buttonConfig.y} - 34px)`;
+  btn.dataset.buttonId = buttonConfig.id;
+  return btn;
+}
+
+function bindPressable(element, options) {
+  const { key, turboTarget, toggleMode } = options;
+
+  const start = (pointerId) => {
+    if (toggleMode) {
+      state.modeExpanded = !state.modeExpanded;
+      renderLayout();
+      vibrate(10);
+      return;
+    }
+    element.classList.add('active');
+    if (turboTarget) {
+      startTurbo(turboTarget, `${element.dataset.buttonId}:${pointerId}`);
+    } else {
+      pressKey(key);
+    }
+    state.pointerBindings.set(pointerId, { element, key, turboTarget, uniqueId: `${element.dataset.buttonId}:${pointerId}` });
+    vibrate(10);
+  };
+
+  const end = (pointerId) => {
+    const binding = state.pointerBindings.get(pointerId);
+    if (!binding) return;
+    binding.element.classList.remove('active');
+    if (binding.turboTarget) {
+      stopTurbo(binding.uniqueId);
+    } else {
+      releaseKey(binding.key);
+    }
+    state.pointerBindings.delete(pointerId);
+  };
+
+  element.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    element.setPointerCapture?.(e.pointerId);
+    start(e.pointerId);
+  });
+  element.addEventListener('pointerup', (e) => { e.preventDefault(); end(e.pointerId); });
+  element.addEventListener('pointercancel', (e) => end(e.pointerId));
+  element.addEventListener('pointerleave', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    end(e.pointerId);
+  });
+}
+
+function renderShoulders(container, buttons) {
+  container.innerHTML = '';
+  buttons.forEach(button => {
+    const el = createButtonElement(button, 'btn small');
+    el.style.position = 'relative';
+    el.style.left = 'unset';
+    el.style.top = 'unset';
+    bindPressable(el, button.toggle ? { toggleMode: true } : button);
+    container.appendChild(el);
+  });
+}
+
+function renderBottomButtons(buttons) {
+  bottomBar.innerHTML = '';
+  buttons.forEach(button => {
+    const el = createButtonElement(button, 'btn mini');
+    el.style.position = 'relative';
+    el.style.left = 'unset';
+    el.style.top = 'unset';
+    bindPressable(el, button.toggle ? { toggleMode: true } : button);
+    bottomBar.appendChild(el);
+  });
+}
+
+function renderFaceButtons(config) {
+  faceWrap.className = `face-wrap ${config.faceClass || ''}`;
+  faceWrap.innerHTML = '<div class="system-label" id="systemLabel"></div><button class="btn mode-toggle hidden interactive" id="modeToggle" type="button">6 TUŞ</button>';
+  const labelEl = faceWrap.querySelector('#systemLabel');
+  labelEl.textContent = config.label;
+  const modeEl = faceWrap.querySelector('#modeToggle');
+  if (config.modeToggle) {
+    modeEl.classList.remove('hidden');
+    modeEl.textContent = state.modeExpanded ? '3 TUŞ' : '6 TUŞ';
+    bindPressable(modeEl, { toggleMode: true });
+  }
+
+  const buttons = [...(config.buttons || []), ...(config.baseButtons || [])];
+  if (config.extraButtons && state.modeExpanded) buttons.push(...config.extraButtons);
+
+  buttons.forEach(button => {
+    const el = createButtonElement(button);
+    bindPressable(el, button);
+    faceWrap.appendChild(el);
+  });
+}
+
+function renderLayout() {
+  const config = layoutConfig[systemType];
+  renderShoulders(leftShoulder, config.shouldersLeft || []);
+  renderShoulders(rightShoulder, config.shouldersRight || []);
+  renderFaceButtons(config);
+  renderBottomButtons(config.bottomButtons || []);
+}
+
+function normalizeDpadDirections(nextDirections) {
+  const all = [CONTROL_KEYS.UP, CONTROL_KEYS.DOWN, CONTROL_KEYS.LEFT, CONTROL_KEYS.RIGHT];
+  all.forEach(key => {
+    if (nextDirections.has(key) && !state.dpadDirections.has(key)) pressKey(key);
+    if (!nextDirections.has(key) && state.dpadDirections.has(key)) releaseKey(key);
+  });
+  state.dpadDirections = nextDirections;
+  const active = nextDirections.size > 0;
+  dpadVertical.classList.toggle('active', active && (nextDirections.has(CONTROL_KEYS.UP) || nextDirections.has(CONTROL_KEYS.DOWN)));
+  dpadHorizontal.classList.toggle('active', active && (nextDirections.has(CONTROL_KEYS.LEFT) || nextDirections.has(CONTROL_KEYS.RIGHT)));
+  dpadCenter.classList.toggle('active', active);
+}
+
+function processDpadPoint(clientX, clientY) {
+  const rect = dpadHit.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const dx = (clientX - cx) / (rect.width / 2);
+  const dy = (clientY - cy) / (rect.height / 2);
+  const dead = 0.18;
+  const dirs = new Set();
+
+  if (dx < -dead) dirs.add(CONTROL_KEYS.LEFT);
+  if (dx > dead) dirs.add(CONTROL_KEYS.RIGHT);
+  if (dy < -dead) dirs.add(CONTROL_KEYS.UP);
+  if (dy > dead) dirs.add(CONTROL_KEYS.DOWN);
+
+  normalizeDpadDirections(dirs);
+}
+
+function releaseDpad() {
+  normalizeDpadDirections(new Set());
+  state.dpadPointerId = null;
+}
+
+function bindDpad() {
+  dpadHit.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    dpadHit.setPointerCapture?.(e.pointerId);
+    state.dpadPointerId = e.pointerId;
+    processDpadPoint(e.clientX, e.clientY);
+    vibrate(10);
+  });
+
+  dpadHit.addEventListener('pointermove', (e) => {
+    if (state.dpadPointerId !== e.pointerId) return;
+    processDpadPoint(e.clientX, e.clientY);
+  });
+
+  const end = (e) => {
+    if (state.dpadPointerId !== e.pointerId) return;
+    releaseDpad();
+  };
+  dpadHit.addEventListener('pointerup', end);
+  dpadHit.addEventListener('pointercancel', end);
+}
+
+function setupVisibility() {
+  mobileControls.classList.toggle('hidden', !isTouchDevice());
+}
+
+bindDpad();
+renderLayout();
+setupVisibility();
+window.addEventListener('resize', setupVisibility);
+window.addEventListener('orientationchange', setupVisibility);
+window.addEventListener('blur', () => {
+  [...state.activeKeys].forEach(releaseKey);
+  [...state.turboTimers.keys()].forEach(stopTurbo);
+  releaseDpad();
+});
+</script>
+<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 </body>
 </html>
