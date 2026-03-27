@@ -1,48 +1,102 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <title>Retro Oyun Oynatıcı</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oyun</title>
   <style>
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; overflow: hidden; }
-    #game { width: 100%; height: 100%; touch-action: none; -webkit-user-select: none; user-select: none; }
-    
-    /* Dokunmatik hassasiyet ayarı */
-    .ejs-touch-button {
-      padding: 25px !important; 
-      margin: -25px !important;
-      background-clip: content-box !important;
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
     }
 
+    #game {
+      width: 100%;
+      height: 100dvh;
+    }
+
+    /* Sol üstteki geri butonu stili */
     .back-btn {
-      position: absolute; top: 10px; left: 10px; z-index: 9999; 
-      padding: 10px 15px; background: rgba(0,0,0,0.6); color: #fff;
-      border: 1px solid #555; border-radius: 8px; text-decoration: none; font-size: 14px;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 99999;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      backdrop-filter: blur(5px);
+      transition: 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(50, 50, 50, 0.9);
     }
   </style>
 </head>
 <body>
 
-  <a href="javascript:history.back()" class="back-btn">← Geri</a>
+  <button class="back-btn" onclick="history.back()">← Geri</button>
+
   <div id="game"></div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const core = urlParams.get('core');
-    const rom = urlParams.get('rom'); // index.html zaten tam yolu gönderiyor
+    const params = new URLSearchParams(location.search);
+    const core = params.get("core");
+    const rom = params.get("rom");
 
-    window.EJS_settings = {
-      dataUrl: "https://raw.githack.com/EmulatorJS/EmulatorJS/main/data/",
-      core: core,
-      rom: rom, // Hatayı burada düzelttim, direkt gelen yolu kullanıyor
-      startOnLoaded: true,
-      mobileButtonsSize: 60,
-      vibration: true,
-      touchInputMode: "gamepad"
-    };
+    if (!core || !rom) {
+      alert("Hata: Oyun verisi eksik!");
+      window.location.href = "./";
+    }
+
+    window.EJS_player = "#game";
+    window.EJS_core = core;
+    window.EJS_gameUrl = decodeURIComponent(rom);
+    window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+
+    // --- SADECE MOBİLDE TAM EKRAN VE YATAY MOD FONKSİYONU ---
+    async function handleMobileView() {
+      // Cihaz kontrolü (Mobil mi?)
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || 
+                       (window.innerWidth <= 1024);
+
+      if (!isMobile) return; // PC ise hiçbir şey yapma
+
+      try {
+        const elem = document.documentElement;
+        
+        // Tam ekrana geç
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          await elem.webkitRequestFullscreen();
+        }
+
+        // Ekranı yatay (landscape) kilitle
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock('landscape').catch(e => console.log("Oryantasyon hatası"));
+        }
+      } catch (err) {
+        console.log("Giriş etkileşimi gerekiyor veya desteklenmiyor.");
+      }
+    }
+
+    // İlk dokunuşta/tıklamada (Oyunu Başlat butonu dahil) çalışır
+    document.addEventListener("click", handleMobileView, { once: true });
+    document.addEventListener("touchstart", handleMobileView, { once: true });
   </script>
-  <script src="https://raw.githack.com/EmulatorJS/EmulatorJS/main/data/loader.js"></script>
+
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 </body>
 </html>
