@@ -5,194 +5,61 @@
   <title>Retro Oyunlar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root{
-      --bg:#f2efe8;
-      --panel:#fbf8f2;
-      --panel-2:#f6f2ea;
-      --text:#26231f;
-      --muted:#6f685f;
-      --accent:#d9d2c5;
-      --border:#ddd6ca;
+    :root {
+      --bg:#f2efe8; --panel:#fbf8f2; --panel-2:#f6f2ea; --text:#26231f;
+      --muted:#6f685f; --accent:#d9d2c5; --border:#ddd6ca;
       --shadow:0 10px 30px rgba(60,52,44,.08);
     }
-
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
-    body{min-height:100vh}
-
-    .wrap{
-      width:min(1400px, calc(100% - 32px));
-      margin:0 auto;
-      padding:24px 0 40px;
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: Arial, sans-serif; }
+    .wrap { width: min(1400px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 40px; }
+    .hero { margin-bottom: 20px; padding: 24px; border: 1px solid var(--border); border-radius: 18px; background: linear-gradient(180deg, #fbf8f2 0%, #f3eee5 100%); box-shadow: var(--shadow); }
+    .topbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .title { margin: 0; font-size: 32px; line-height: 1.1; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 10px; }
+    .tab { border: 1px solid var(--border); background: var(--panel); border-radius: 999px; padding: 12px 18px; font-size: 14px; font-weight: 700; cursor: pointer; transition: .18s; }
+    .tab.active { background: #d8cfbf; border-color: #d8cfbf; }
+    .count-inline { margin-left: auto; color: var(--muted); font-size: 15px; font-weight: 700; }
+    .search-icon { font-size: 22px; color: var(--muted); cursor: pointer; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+    .card { display: flex; flex-direction: column; text-decoration: none; color: inherit; border: 1px solid var(--border); background: var(--panel); border-radius: 16px; overflow: hidden; transition: .18s; min-height: 320px; }
+    .card:hover { transform: translateY(-2px); border-color: #bdb4a6; }
+    .thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #ece7de; border-bottom: 1px solid var(--border); }
+    .card-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .game-name { font-size: 14px; font-weight: 700; margin: 0; }
+    .game-rom { color: var(--muted); font-size: 12px; margin-top: auto; }
+    
+    /* Yukarı Çık Butonu Stili */
+    #backToTopBtn {
+      display: none; position: fixed; bottom: 30px; right: 30px; z-index: 9999;
+      width: 50px; height: 50px; border: none; border-radius: 50%;
+      background: var(--text); color: var(--panel); font-size: 20px;
+      cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      align-items: center; justify-content: center; transition: 0.3s;
     }
-
-    .hero{
-      margin-bottom:20px;
-      padding:24px;
-      border:1px solid var(--border);
-      border-radius:18px;
-      background:linear-gradient(180deg, #fbf8f2 0%, #f3eee5 100%);
-      box-shadow:var(--shadow);
-    }
-
-    .topbar{
-      display:flex;
-      align-items:center;
-      gap:14px;
-      flex-wrap:wrap;
-    }
-
-    .title{
-      margin:0;
-      font-size:32px;
-      line-height:1.1;
-      white-space:nowrap;
-    }
-
-    .tabs{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin:0;
-    }
-
-    .tab{
-      border:1px solid var(--border);
-      background:var(--panel);
-      color:var(--text);
-      border-radius:999px;
-      padding:12px 18px;
-      font-size:14px;
-      font-weight:700;
-      cursor:pointer;
-      transition:.18s ease;
-    }
-
-    .tab:hover{
-      border-color:#bdb4a6;
-      transform:translateY(-1px);
-    }
-
-    .tab.active{
-      background:#d8cfbf;
-      color:#26231f;
-      border-color:#d8cfbf;
-    }
-
-    .count-inline{
-      margin-left:auto;
-      color:var(--muted);
-      font-size:15px;
-      font-weight:700;
-      white-space:nowrap;
-    }
-
-    .search-icon{
-      font-size:22px;
-      line-height:1;
-      color:var(--muted);
-      user-select:none;
-      white-space:nowrap;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
-      gap:16px;
-    }
-
-    .card{
-      display:flex;
-      flex-direction:column;
-      text-decoration:none;
-      color:inherit;
-      border:1px solid var(--border);
-      background:var(--panel);
-      border-radius:16px;
-      overflow:hidden;
-      box-shadow:var(--shadow);
-      transition:.18s ease;
-      min-height:320px;
-    }
-
-    .card:hover{
-      transform:translateY(-2px);
-      border-color:#bdb4a6;
-    }
-
-    .thumb{
-      width:100%;
-      aspect-ratio: 4 / 3;
-      background:#ece7de;
-      border-bottom:1px solid var(--border);
-      object-fit:cover;
-      display:block;
-    }
-
-    .thumb.placeholder{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:#8d857a;
-      font-size:13px;
-      letter-spacing:.3px;
-    }
-
-    .card-body{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      padding:12px;
-      min-height:0;
-      flex:1;
-    }
-
-    .game-name{
-      font-size:14px;
-      line-height:1.4;
-      font-weight:700;
-      margin:0;
-      word-break:break-word;
-    }
-
-    .game-rom{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.35;
-      word-break:break-word;
-      margin-top:auto;
-    }
-
-    .empty, .loading, .error{
-      border:1px solid var(--border);
-      background:var(--panel);
-      border-radius:16px;
-      padding:22px;
-      color:var(--muted);
-      box-shadow:var(--shadow);
-    }
-
+    #backToTopBtn:hover { transform: translateY(-3px); opacity: 1; }
   </style>
 </head>
 <body>
-  <div class="wrap">
 
+  <div class="wrap">
     <section class="hero">
       <div class="topbar">
         <h1 class="title">Retro Oyunlar</h1>
         <nav class="tabs" id="tabs"></nav>
-        <div class="count-inline" id="gameCountInline">Oyunlar yükleniyor...</div>
+        <div class="count-inline" id="gameCountInline">Yükleniyor...</div>
         <div class="search-icon" id="searchToggle">⌕</div>
       </div>
     </section>
 
-    <div id="searchBox" style="display:none;margin:10px 0;"><input id="searchInput" placeholder="Oyun ara..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;"></div>
+    <div id="searchBox" style="display:none; margin-bottom: 20px;">
+      <input id="searchInput" placeholder="Oyun ara..." style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px;">
+    </div>
 
-    <main id="content">
-      <div class="loading">Oyunlar yükleniyor...</div>
-    </main>
-
+    <main id="content"></main>
   </div>
+
+  <button id="backToTopBtn" title="Yukarı Çık">↑</button>
 
   <script>
     const SYSTEMS = [
@@ -206,259 +73,85 @@
     const tabsEl = document.getElementById("tabs");
     const contentEl = document.getElementById("content");
     const gameCountInlineEl = document.getElementById("gameCountInline");
+    const backToTopBtn = document.getElementById("backToTopBtn");
 
-    let activeSystem = "gb";
+    let activeSystem = localStorage.getItem("lastSystem") || "gb";
     let currentGames = [];
     let mameNameMap = {};
 
-    function stripExtension(filename) {
-      return filename.replace(/\.[^.]+$/, "");
-    }
-
-    function getSystem(systemKey) {
-      return SYSTEMS.find(s => s.key === systemKey);
-    }
-
     function buildTabs() {
       tabsEl.innerHTML = "";
-      for (const system of SYSTEMS) {
-        const button = document.createElement("button");
-        button.className = "tab" + (system.key === activeSystem ? " active" : "");
-        button.textContent = system.label;
-        button.type = "button";
-        button.addEventListener("click", () => {
-          if (activeSystem === system.key) return;
-          activeSystem = system.key;
+      SYSTEMS.forEach(sys => {
+        const btn = document.createElement("button");
+        btn.className = "tab" + (sys.key === activeSystem ? " active" : "");
+        btn.textContent = sys.label;
+        btn.onclick = () => {
+          if (activeSystem === sys.key) return;
+          activeSystem = sys.key;
+          localStorage.setItem("lastSystem", activeSystem);
           buildTabs();
-          loadPlatform(system.key);
-        });
-        tabsEl.appendChild(button);
-      }
-    }
-
-    async function fetchJson(url) {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(url + " yüklenemedi");
-      return response.json();
-    }
-
-    async function loadMameNames() {
-      try {
-        mameNameMap = await fetchJson("data/mame2003-names.json");
-      } catch (error) {
-        mameNameMap = {};
-      }
-    }
-
-    function getDisplayName(romFile, systemKey) {
-      const shortName = stripExtension(romFile);
-
-      if (systemKey === "mame2003" && mameNameMap[shortName]) {
-        return mameNameMap[shortName];
-      }
-
-      return shortName;
-    }
-
-    function mergeGames(romList, systemKey) {
-      return romList.map(romFile => ({
-        rom: romFile,
-        name: getDisplayName(romFile, systemKey),
-        system: systemKey
-      }));
-    }
-
-    function getPlayUrl(game) {
-      const system = getSystem(game.system);
-      const romPath = `roms/${game.system}/${game.rom}`;
-      return `play.html?core=${encodeURIComponent(system.core)}&rom=${encodeURIComponent(romPath)}`;
-    }
-
-    function thumbCandidates(game) {
-      const system = getSystem(game.system);
-      const encodedName = encodeURIComponent(game.name) + ".png";
-      const base = `https://raw.githubusercontent.com/libretro-thumbnails/${system.thumbRepo}/master`;
-
-      return [
-        `${base}/Named_Snaps/${encodedName}`,
-        `${base}/Named_Boxarts/${encodedName}`,
-        `${base}/Named_Titles/${encodedName}`
-      ];
-    }
-
-    function createPlaceholder() {
-      const div = document.createElement("div");
-      div.className = "thumb placeholder";
-      div.textContent = "Görsel yok";
-      return div;
-    }
-
-    function setPreferredThumb(img, game) {
-      const urls = thumbCandidates(game);
-      let index = 0;
-
-      function tryNext() {
-        if (index >= urls.length) {
-          const placeholder = createPlaceholder();
-          img.replaceWith(placeholder);
-          return;
-        }
-
-        const url = urls[index++];
-        const probe = new Image();
-        probe.onload = () => {
-          img.src = url;
-          img.alt = game.name;
+          loadPlatform(sys.key);
         };
-        probe.onerror = () => tryNext();
-        probe.src = url;
-      }
+        tabsEl.appendChild(btn);
+      });
+    }
 
-      tryNext();
+    async function loadPlatform(key) {
+      gameCountInlineEl.textContent = "Yükleniyor...";
+      try {
+        const res = await fetch(`data/${key}.json`);
+        const roms = await res.json();
+        currentGames = roms.map(r => ({ rom: r, name: r.replace(/\.[^.]+$/, ""), system: key }));
+        gameCountInlineEl.textContent = `${currentGames.length} oyun`;
+        renderGames(currentGames);
+      } catch (e) { contentEl.innerHTML = "Hata oluştu."; }
     }
 
     function renderGames(games) {
-      if (!games.length) {
-        contentEl.innerHTML = '<div class="empty">Bu klasörde oyun yok.</div>';
-        return;
-      }
-
       const grid = document.createElement("div");
       grid.className = "grid";
-
-      for (const game of games) {
+      games.forEach(g => {
         const card = document.createElement("a");
         card.className = "card";
-        card.href = getPlayUrl(game);
-
-        const img = document.createElement("img");
-        img.className = "thumb";
-        img.loading = "lazy";
-
-        const body = document.createElement("div");
-        body.className = "card-body";
-
-        const title = document.createElement("p");
-        title.className = "game-name";
-        title.textContent = game.name;
-
-        const rom = document.createElement("div");
-        rom.className = "game-rom";
-        rom.textContent = game.rom;
-
-        body.appendChild(title);
-        body.appendChild(rom);
-
-        card.appendChild(img);
-        card.appendChild(body);
+        const sys = SYSTEMS.find(s => s.key === g.system);
+        card.href = `play.html?core=${sys.core}&rom=roms/${g.system}/${g.rom}`;
+        card.onclick = () => localStorage.setItem("scrollPos", window.scrollY);
+        
+        card.innerHTML = `
+          <img class="thumb" loading="lazy" src="https://raw.githubusercontent.com/libretro-thumbnails/${sys.thumbRepo}/master/Named_Boxarts/${encodeURIComponent(g.name)}.png">
+          <div class="card-body">
+            <p class="game-name">${g.name}</p>
+            <div class="game-rom">${g.rom}</div>
+          </div>`;
         grid.appendChild(card);
-
-        setPreferredThumb(img, game);
-      }
-
+      });
       contentEl.innerHTML = "";
       contentEl.appendChild(grid);
-    }
 
-    async function loadPlatform(systemKey) {
-      gameCountInlineEl.textContent = "Oyunlar yükleniyor...";
-      contentEl.innerHTML = '<div class="loading">Oyunlar yükleniyor...</div>';
-
-      try {
-        const romList = await fetchJson(`data/${systemKey}.json`);
-        currentGames = mergeGames(romList, systemKey);
-        gameCountInlineEl.textContent = `${currentGames.length} oyun`;
-        renderGames(currentGames);
-      } catch (error) {
-        contentEl.innerHTML = '<div class="error">Oyun listesi yüklenemedi.</div>';
-        gameCountInlineEl.textContent = "Hata";
+      const savedPos = localStorage.getItem("scrollPos");
+      if (savedPos) {
+        window.scrollTo(0, parseInt(savedPos));
+        localStorage.removeItem("scrollPos");
       }
     }
 
-    const searchToggle = document.getElementById("searchToggle");
-    const searchBox = document.getElementById("searchBox");
-    const searchInput = document.getElementById("searchInput");
+    window.onscroll = () => {
+      backToTopBtn.style.display = (window.scrollY > 300) ? "flex" : "none";
+    };
+    backToTopBtn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    searchToggle.addEventListener("click", () => {
-      searchBox.style.display = searchBox.style.display === "none" ? "block" : "none";
-      searchInput.focus();
-    });
+    document.getElementById("searchToggle").onclick = () => {
+      const s = document.getElementById("searchBox");
+      s.style.display = s.style.display === "none" ? "block" : "none";
+    };
 
-    searchInput.addEventListener("input", () => {
-      const q = searchInput.value.toLowerCase();
-      const filtered = currentGames.filter(g => g.name.toLowerCase().includes(q));
-      renderGames(filtered);
-    });
+    document.getElementById("searchInput").oninput = (e) => {
+      const q = e.target.value.toLowerCase();
+      renderGames(currentGames.filter(g => g.name.toLowerCase().includes(q)));
+    };
 
-    (async function () {
-      await loadMameNames();
-      buildTabs();
-      loadPlatform(activeSystem);
-    })();
+    buildTabs();
+    loadPlatform(activeSystem);
   </script>
-
-  <style>
-  #backToTopBtn {
-    display: none; /* Başlangıçta gizli */
-    position: fixed;
-    bottom: 30px; /* Alttan mesafe */
-    right: 30px;  /* Sağdan mesafe */
-    z-index: 9999; /* Diğer elementlerin üstünde durması için */
-    border: none;
-    outline: none;
-    background-color: var(--text); /* Temaya uygun koyu renk */
-    color: var(--panel);          /* Yazı rengi */
-    cursor: pointer;
-    padding: 15px;
-    border-radius: 50%;          /* Yuvarlak buton */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transition: background-color 0.3s, opacity 0.3s, transform 0.3s;
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.8;
-  }
-
-  #backToTopBtn:hover {
-    background-color: var(--muted); /* Hover efekti */
-    opacity: 1;
-    transform: translateY(-3px); /* Hafif yukarı kalkma efekti */
-  }
-</style>
-
-<button id="backToTopBtn" title="Yukarı Çık">
-  ↑
-</button>
-
-<script>
-  // Butonu değişkene atayalım
-  const backToTopBtn = document.getElementById("backToTopBtn");
-
-  // Kullanıcı sayfayı aşağı kaydırdığında çalışacak fonksiyon
-  window.onscroll = function() {scrollFunction()};
-
-  function scrollFunction() {
-    // Sayfa 300px'den fazla aşağı kaydırıldıysa butonu göster, yoksa gizle
-    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-      backToTopBtn.style.display = "flex";
-    } else {
-      backToTopBtn.style.display = "none";
-    }
-  }
-
-  // Butona tıklandığında çalışacak fonksiyon
-  backToTopBtn.addEventListener("click", function() {
-    // Sayfanın en üstüne pürüzsüz (smooth) bir şekilde kaydır
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  });
-</script>
-
 </body>
 </html>
