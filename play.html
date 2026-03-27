@@ -1,102 +1,87 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Oyun</title>
+  <meta charset="utf-8">
+  <title>Retro Oyun Oynatıcı</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
   <style>
-    body {
-      margin: 0;
-      background: #000;
-      color: #fff;
-      font-family: Arial, Helvetica, sans-serif;
-      overflow: hidden;
+    body, html {
+      margin: 0; padding: 0; width: 100%; height: 100%;
+      background-color: #000; overflow: hidden;
+      font-family: sans-serif;
     }
 
+    /* 2. HASSASİYETİ ARTIRAN CSS */
     #game {
-      width: 100%;
-      height: 100dvh;
+      width: 100%; height: 100%;
+      touch-action: none; /* Tarayıcı müdahalesini kapatır */
+      -webkit-user-select: none;
+      user-select: none;
     }
 
-    /* Sol üstteki geri butonu stili */
+    /* 3. BASMA ALANINI (HITBOX) GENİŞLETME */
+    /* EmulatorJS butonlarını hedef alır */
+    .ejs-touch-button {
+      padding: 25px !important; /* Görünmez tıklama alanını 25px dışa açar */
+      margin: -25px !important;  /* Yerleşimi sabit tutar */
+      background-clip: content-box !important; /* Rengin sadece ortada kalmasını sağlar */
+      transition: transform 0.05s active;
+    }
+
+    .ejs-touch-button:active {
+      transform: scale(1.15); /* Basıldığında görsel geri bildirim */
+      filter: brightness(1.3);
+    }
+
+    /* Geri Butonu Stili */
     .back-btn {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      z-index: 99999;
-      background: rgba(0, 0, 0, 0.7);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      backdrop-filter: blur(5px);
-      transition: 0.2s;
-    }
-
-    .back-btn:hover {
-      background: rgba(50, 50, 50, 0.9);
+      position: absolute; top: 10px; left: 10px;
+      z-index: 9999; padding: 10px 15px;
+      background: rgba(0,0,0,0.6); color: #fff;
+      border: 1px solid #555; border-radius: 8px;
+      text-decoration: none; font-size: 14px;
     }
   </style>
 </head>
 <body>
 
-  <button class="back-btn" onclick="history.back()">← Geri</button>
+  <a href="javascript:history.back()" class="back-btn">← Geri</a>
 
   <div id="game"></div>
 
   <script>
-    const params = new URLSearchParams(location.search);
-    const core = params.get("core");
-    const rom = params.get("rom");
+    const urlParams = new URLSearchParams(window.location.search);
+    const core = urlParams.get('core');
+    const rom = urlParams.get('rom');
 
     if (!core || !rom) {
-      alert("Hata: Oyun verisi eksik!");
-      window.location.href = "./";
+      alert("Hata: Core veya ROM bulunamadı!");
+      window.location.href = 'index.html';
     }
 
-    window.EJS_player = "#game";
-    window.EJS_core = core;
-    window.EJS_gameUrl = decodeURIComponent(rom);
-    window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-
-    // --- SADECE MOBİLDE TAM EKRAN VE YATAY MOD FONKSİYONU ---
-    async function handleMobileView() {
-      // Cihaz kontrolü (Mobil mi?)
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || 
-                       (window.innerWidth <= 1024);
-
-      if (!isMobile) return; // PC ise hiçbir şey yapma
-
-      try {
-        const elem = document.documentElement;
-        
-        // Tam ekrana geç
-        if (elem.requestFullscreen) {
-          await elem.requestFullscreen();
-        } else if (elem.webkitRequestFullscreen) {
-          await elem.webkitRequestFullscreen();
-        }
-
-        // Ekranı yatay (landscape) kilitle
-        if (screen.orientation && screen.orientation.lock) {
-          await screen.orientation.lock('landscape').catch(e => console.log("Oryantasyon hatası"));
-        }
-      } catch (err) {
-        console.log("Giriş etkileşimi gerekiyor veya desteklenmiyor.");
-      }
-    }
-
-    // İlk dokunuşta/tıklamada (Oyunu Başlat butonu dahil) çalışır
-    document.addEventListener("click", handleMobileView, { once: true });
-    document.addEventListener("touchstart", handleMobileView, { once: true });
+    // 4. EMULATORJS AYARLARI
+    window.EJS_settings = {
+      dataUrl: "https://raw.githack.com/EmulatorJS/EmulatorJS/main/data/",
+      core: core,
+      rom: rom,
+      adUrl: "",
+      startOnLoaded: true,
+      
+      // Mobil Kontrol Ayarları
+      mobileButtonsSize: 60,     // Butonları baş parmağa uygun boyuta getirir
+      vibration: true,           // Nostalgia.NES hissi için titreşim
+      touchInputMode: "gamepad", // Saf gamepad modu
+      
+      // Ekran Ayarları
+      canChangeExternalPosition: false,
+      externalPosition: "bottom",
+      screenshotEnabled: false,
+      stateEnabled: true
+    };
   </script>
-
-  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+  
+  <script src="https://raw.githack.com/EmulatorJS/EmulatorJS/main/data/loader.js"></script>
 
 </body>
 </html>
