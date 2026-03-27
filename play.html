@@ -2,307 +2,99 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Oyun</title>
 <style>
-html, body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  color: #fff;
-  overflow: hidden;
-  font-family: Arial, Helvetica, sans-serif;
-}
-body {
-  position: fixed;
-  inset: 0;
-}
-#game {
-  width: 100%;
-  height: 100dvh;
-}
-#backLink {
-  position: fixed;
-  top: max(10px, env(safe-area-inset-top));
-  left: max(10px, env(safe-area-inset-left));
-  z-index: 9999;
-  color: #fff;
-  text-decoration: none;
-  background: rgba(0,0,0,.6);
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 14px;
-  line-height: 1;
-  backdrop-filter: blur(8px);
-}
+  body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow: hidden;
+  }
+
+  #game {
+    width: 100%;
+    height: 100dvh;
+  }
+
+  /* Buton Konteynırı */
+  .controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 9999;
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+
+  .btn:active {
+    background: rgba(255, 255, 255, 0.4);
+  }
 </style>
 </head>
 <body>
-<a id="backLink" href="./">Ana Sayfa</a>
+
+<div class="controls">
+  <div class="btn" onclick="history.back()">⬅ Geri</div>
+  <div class="btn" onclick="toggleFullScreen()">⛶ Tam Ekran</div>
+</div>
+
 <div id="game"></div>
 
 <script>
 const params = new URLSearchParams(location.search);
 const core = params.get("core");
 const rom = params.get("rom");
-const padMode = params.get("padmode") || "3";
 
 if (!core || !rom) {
-  document.body.innerHTML = '<div style="padding:20px">Oyun bulunamadı</div>';
+  alert("Oyun parametreleri eksik!");
   throw new Error("Eksik parametre");
 }
 
-function systemTypeFromCore(coreName) {
-  switch (coreName) {
-    case "nes":
-    case "gb":
-    case "gbc":
-    case "gba":
-    case "sms":
-    case "gg":
-      return "nes";
-    case "snes":
-      return "snes";
-    case "segaMD":
-      return "genesis";
-    case "mame":
-      return "mame";
-    default:
-      return "nes";
-  }
-}
-
-function controlSchemeFromCore(coreName) {
-  switch (coreName) {
-    case "gb":
-    case "gbc":
-      return "gb";
-    case "gba":
-      return "gba";
-    case "sms":
-      return "segaMS";
-    case "gg":
-      return "segaGG";
-    case "snes":
-      return "snes";
-    case "segaMD":
-      return "segaMD";
-    case "mame":
-      return "mame";
-    case "nes":
-    default:
-      return "nes";
-  }
-}
-
-function dpad(leftPercent) {
-  return {
-    type: "dpad",
-    location: "left",
-    left: `${leftPercent}%`,
-    joystickInput: false,
-    inputValues: [4, 5, 6, 7]
-  };
-}
-
-function zone(leftPercent, color = "rgba(255,255,255,.0001)") {
-  return {
-    type: "zone",
-    location: "left",
-    left: `${leftPercent}%`,
-    top: "50%",
-    joystickInput: false,
-    color,
-    inputValues: [4, 5, 6, 7]
-  };
-}
-
-function btn(text, id, location, opts) {
-  return {
-    type: "button",
-    text,
-    id,
-    location,
-    bold: true,
-    fontSize: opts.fontSize || 24,
-    block: !!opts.block,
-    input_value: opts.input_value,
-    ...(opts.left !== undefined ? { left: opts.left } : {}),
-    ...(opts.right !== undefined ? { right: opts.right } : {}),
-    ...(opts.top !== undefined ? { top: opts.top } : {})
-  };
-}
-
-function buildNESLayout() {
-  return [
-    zone(56),
-    dpad(56),
-
-    // Sağ baklava: üst TB / sol TA / sağ B / alt A
-    // Not: TB/TA şu aşamada çalışan yerleşim için aynı A/B girişlerini tekrarlar.
-    btn("TB", "tb", "right", { left: 114, top: 8, input_value: 8, fontSize: 18 }),
-    btn("TA", "ta", "right", { left: 18, top: 82, input_value: 0, fontSize: 18 }),
-    btn("B", "b", "right", { left: 208, top: 82, input_value: 8, fontSize: 22 }),
-    btn("A", "a", "right", { left: 114, top: 156, input_value: 0, fontSize: 22 }),
-
-    btn("SELECT", "select", "center", { left: -48, top: 14, input_value: 2, fontSize: 13, block: true }),
-    btn("START", "start", "center", { left: 48, top: 14, input_value: 3, fontSize: 13, block: true })
-  ];
-}
-
-function buildSNESLayout() {
-  return [
-    zone(56),
-    dpad(56),
-
-    btn("L1", "l1", "left", { left: 122, top: -8, input_value: 10, fontSize: 16 }),
-    btn("R1", "r1", "right", { left: 114, top: -8, input_value: 11, fontSize: 16 }),
-
-    // Senin istediğin sağ baklava:
-    //   Y
-    // X   B
-    //   A
-    btn("Y", "y", "right", { left: 114, top: 8, input_value: 9, fontSize: 22 }),
-    btn("X", "x", "right", { left: 18, top: 82, input_value: 1, fontSize: 22 }),
-    btn("B", "b", "right", { left: 208, top: 82, input_value: 8, fontSize: 22 }),
-    btn("A", "a", "right", { left: 114, top: 156, input_value: 0, fontSize: 22 }),
-
-    btn("SELECT", "select", "center", { left: -48, top: 14, input_value: 2, fontSize: 13, block: true }),
-    btn("START", "start", "center", { left: 48, top: 14, input_value: 3, fontSize: 13, block: true })
-  ];
-}
-
-function buildGenesisLayout(mode) {
-  const items = [
-    zone(56),
-    dpad(56),
-    btn("START", "start", "center", { left: 38, top: 14, input_value: 3, fontSize: 13, block: true })
-  ];
-
-  // Sega için pratik varsayım:
-  // A=8, B=0, C=9, X=1, Y=10, Z=11
-  if (mode === "6") {
-    items.push(
-      btn("X", "x", "right", { left: 28, top: 24, input_value: 1, fontSize: 20 }),
-      btn("Y", "y", "right", { left: 114, top: 24, input_value: 10, fontSize: 20 }),
-      btn("Z", "z", "right", { left: 200, top: 24, input_value: 11, fontSize: 20 }),
-      btn("A", "a", "right", { left: 28, top: 118, input_value: 8, fontSize: 20 }),
-      btn("B", "b", "right", { left: 114, top: 118, input_value: 0, fontSize: 20 }),
-      btn("C", "c", "right", { left: 200, top: 118, input_value: 9, fontSize: 20 })
-    );
-  } else {
-    items.push(
-      btn("A", "a", "right", { left: 28, top: 92, input_value: 8, fontSize: 22 }),
-      btn("B", "b", "right", { left: 114, top: 92, input_value: 0, fontSize: 22 }),
-      btn("C", "c", "right", { left: 200, top: 92, input_value: 9, fontSize: 22 })
-    );
-  }
-
-  return items;
-}
-
-function buildMameLayout(mode) {
-  const items = [
-    zone(56),
-    dpad(56),
-    btn("COIN", "coin", "center", { left: -54, top: 14, input_value: 2, fontSize: 12, block: true }),
-    btn("START", "start", "center", { left: 50, top: 14, input_value: 3, fontSize: 13, block: true })
-  ];
-
-  // Arcade/MAME için çalışır bir 3/6 tuş yaklaşımı:
-  // alt sıra: A B C = 8 0 9
-  // üst sıra: D E F = 1 10 11
-  if (mode === "6") {
-    items.push(
-      btn("D", "d", "right", { left: 28, top: 24, input_value: 1, fontSize: 20 }),
-      btn("E", "e", "right", { left: 114, top: 24, input_value: 10, fontSize: 20 }),
-      btn("F", "f", "right", { left: 200, top: 24, input_value: 11, fontSize: 20 }),
-      btn("A", "a", "right", { left: 28, top: 118, input_value: 8, fontSize: 20 }),
-      btn("B", "b", "right", { left: 114, top: 118, input_value: 0, fontSize: 20 }),
-      btn("C", "c", "right", { left: 200, top: 118, input_value: 9, fontSize: 20 })
-    );
-  } else {
-    items.push(
-      btn("A", "a", "right", { left: 28, top: 92, input_value: 8, fontSize: 22 }),
-      btn("B", "b", "right", { left: 114, top: 92, input_value: 0, fontSize: 22 }),
-      btn("C", "c", "right", { left: 200, top: 92, input_value: 9, fontSize: 22 })
-    );
-  }
-
-  return items;
-}
-
-const systemType = systemTypeFromCore(core);
-
 window.EJS_player = "#game";
 window.EJS_core = core;
-window.EJS_controlScheme = controlSchemeFromCore(core);
 window.EJS_gameUrl = decodeURIComponent(rom);
 window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 window.EJS_startOnLoaded = true;
-window.EJS_fullscreenOnLoaded = true;
 
-// Varsayılan mobil gamepad'i göstermeyip kendi layout'umuzu veriyoruz.
-if (systemType === "nes") {
-  window.EJS_VirtualGamepadSettings = buildNESLayout();
-} else if (systemType === "snes") {
-  window.EJS_VirtualGamepadSettings = buildSNESLayout();
-} else if (systemType === "genesis") {
-  window.EJS_VirtualGamepadSettings = buildGenesisLayout(padMode);
-} else if (systemType === "mame") {
-  window.EJS_VirtualGamepadSettings = buildMameLayout(padMode);
+// Tam Ekran Fonksiyonu
+function toggleFullScreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.error(`Hata: ${err.message}`);
+    });
+  } else {
+    document.exitFullscreen();
+  }
 }
-
-const baseButtons = {
-  playPause: false,
-  restart: false,
-  mute: false,
-  settings: true,
-  fullscreen: true,
-  saveState: true,
-  loadState: true,
-  screenRecord: false,
-  gamepad: false,
-  cheat: false,
-  volume: true,
-  saveSavFiles: true,
-  loadSavFiles: true,
-  quickSave: false,
-  quickLoad: false,
-  screenshot: false,
-  cacheManager: false,
-  exitEmulation: false
-};
-
-// 4.2.2+ sürümlerde özel toolbar düğmesi desteği var.
-// Çalışırsa Genesis/MAME'de 3/6 tuş modu için yardımcı olur.
-if (systemType === "genesis" || systemType === "mame") {
-  baseButtons.modeToggle = {
-    visible: true,
-    displayName: padMode === "6" ? "3 Tuş" : "6 Tuş",
-    icon: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
-    callback: () => {
-      const next = new URL(location.href);
-      next.searchParams.set("padmode", padMode === "6" ? "3" : "6");
-      location.href = next.toString();
-    }
-  };
-}
-
-window.EJS_Buttons = baseButtons;
-
-// Kullanıcı etkileşiminde mümkün olan ilk anda root'u tam ekrana çekmeye yardımcı olur.
-document.addEventListener("pointerdown", () => {
-  try {
-    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    }
-  } catch (e) {}
-}, { once: true, passive: true });
-
 </script>
+
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+
+<script>
+document.addEventListener("touchstart", (e) => {
+  // Butonlara tıklandığında sadece titreşim ver, oyunu etkileme
+  if (e.target.classList.contains('btn')) {
+    if (navigator.vibrate) navigator.vibrate(40);
+  }
+});
+</script>
+
 </body>
 </html>
