@@ -11,63 +11,53 @@
     color: #fff;
     font-family: Arial, sans-serif;
     overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
   }
 
-  /* Giriş Ekranı Tasarımı */
+  /* Giriş Ekranı */
   #overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: #1a1a1a;
+    background: #111;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 10000;
+    text-align: center;
   }
 
   .start-btn {
-    padding: 20px 40px;
-    font-size: 24px;
+    padding: 18px 35px;
+    font-size: 20px;
     font-weight: bold;
     color: white;
-    background: #2ecc71;
+    background: #e74c3c; /* Daha belirgin kırmızı */
     border: none;
-    border-radius: 50px;
+    border-radius: 8px;
     cursor: pointer;
-    box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
-    transition: transform 0.2s;
-  }
-
-  .start-btn:active {
-    transform: scale(0.95);
+    box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
   }
 
   #game {
     width: 100%;
     height: 100dvh;
-    display: none; /* Başlatana kadar gizli */
   }
 
-  /* Geri butonu her zaman üstte kalsın */
   .back-btn {
     position: absolute;
     top: 10px;
     left: 10px;
     z-index: 9999;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.1);
     color: white;
-    padding: 8px 15px;
-    border-radius: 5px;
+    padding: 5px 12px;
+    border-radius: 4px;
     text-decoration: none;
-    font-size: 14px;
-    border: 1px solid #444;
+    font-size: 13px;
+    border: 1px solid rgba(255,255,255,0.2);
   }
 </style>
 </head>
@@ -75,53 +65,55 @@
 
 <div id="overlay">
   <button class="start-btn" onclick="startGame()">OYUNU BAŞLAT</button>
-  <p style="margin-top: 20px; color: #888;">Yatay modda otomatik başlar</p>
+  <p style="margin-top: 15px; color: #666; font-size: 14px;">Tam ekran ve yatay mod aktif edilecek</p>
 </div>
 
 <a href="javascript:history.back()" class="back-btn">⬅ Geri</a>
 <div id="game"></div>
 
 <script>
-const params = new URLSearchParams(location.search);
-const core = params.get("core");
-const rom = params.get("rom");
+  const params = new URLSearchParams(location.search);
+  const core = params.get("core");
+  const rom = params.get("rom");
 
-async function startGame() {
-  if (!core || !rom) {
-    alert("Oyun bulunamadı!");
-    return;
-  }
-
-  // 1. Tam Ekran ve Yatay Mod Tetikleme
-  try {
-    if (document.documentElement.requestFullscreen) {
-      await document.documentElement.requestFullscreen();
-    }
-    
-    if (screen.orientation && screen.orientation.lock) {
-      await screen.orientation.lock("landscape").catch(e => console.log("Yön kilitlenemedi"));
-    }
-  } catch (err) {
-    console.log("Tam ekran hatası:", err);
-  }
-
-  // 2. Arayüzü Değiştir
-  document.getElementById('overlay').style.display = 'none';
-  document.getElementById('game').style.display = 'block';
-
-  // 3. Emülatörü Başlat
   window.EJS_player = "#game";
   window.EJS_core = core;
   window.EJS_gameUrl = decodeURIComponent(rom);
   window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-  window.EJS_startOnLoaded = true;
+  window.EJS_startOnLoaded = false; // Otomatik başlamayı kapatıyoruz, biz başlatacağız.
 
-  // Loader'ı dinamik olarak yükle
-  const script = document.createElement('script');
-  script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
-  document.body.appendChild(script);
-}
+  async function startGame() {
+    if (!core || !rom) {
+      alert("Hata: Core veya ROM parametresi bulunamadı.");
+      return;
+    }
+
+    // 1. Tam Ekran ve Yatay Mod
+    try {
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock("landscape").catch(e => console.log("Yön kilitlenemedi"));
+      }
+    } catch (err) {
+      console.log("Sistem kısıtlaması: Tam ekran başlatılamadı.");
+    }
+
+    // 2. Ekranı Değiştir ve Oyunu Tetikle
+    document.getElementById('overlay').style.display = 'none';
+    
+    // EmulatorJS'nin kendi başlatma fonksiyonunu çağırıyoruz
+    if (window.EJS_emulatorRun) {
+        window.EJS_emulatorRun();
+    } else {
+        // Eğer kütüphane henüz yüklenmediyse küçük bir gecikmeyle tekrar dene
+        setTimeout(() => { if(window.EJS_emulatorRun) window.EJS_emulatorRun(); }, 500);
+    }
+  }
 </script>
+
+<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 </body>
 </html>
