@@ -207,7 +207,8 @@
     const contentEl = document.getElementById("content");
     const gameCountInlineEl = document.getElementById("gameCountInline");
 
-    let activeSystem = "gb";
+    // HAFIZA: En son seçilen sistemi al, yoksa "gb" yap
+    let activeSystem = localStorage.getItem("lastSystem") || "gb";
     let currentGames = [];
     let mameNameMap = {};
 
@@ -229,6 +230,8 @@
         button.addEventListener("click", () => {
           if (activeSystem === system.key) return;
           activeSystem = system.key;
+          // HAFIZA: Yeni seçilen sistemi kaydet
+          localStorage.setItem("lastSystem", activeSystem);
           buildTabs();
           loadPlatform(system.key);
         });
@@ -330,6 +333,11 @@
         const card = document.createElement("a");
         card.className = "card";
         card.href = getPlayUrl(game);
+        
+        // HAFIZA: Bir oyuna tıklandığında ekranın o anki yüksekliğini kaydet
+        card.addEventListener("click", () => {
+          localStorage.setItem("scrollPos", window.scrollY);
+        });
 
         const img = document.createElement("img");
         img.className = "thumb";
@@ -358,6 +366,16 @@
 
       contentEl.innerHTML = "";
       contentEl.appendChild(grid);
+
+      // HAFIZA: Oyunlar listelendikten sonra, eğer kayıtlı bir konum varsa oraya kaydır
+      const savedPos = localStorage.getItem("scrollPos");
+      if (savedPos) {
+        // Tarayıcının render işlemini bitirmesi için çok kısa bir süre bekletiyoruz
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedPos));
+          localStorage.removeItem("scrollPos"); // Tekrar tıklanana kadar temizle
+        }, 50);
+      }
     }
 
     async function loadPlatform(systemKey) {
