@@ -85,5 +85,36 @@
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
+<script>
+async function makeLandscape() {
+  try {
+    // 1. Önce tam ekrana geçiş yap (Orientation kilidi için şarttır)
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      await elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) {
+      await elem.webkitRequestFullscreen();
+    }
+
+    // 2. Ekranı yatay (landscape) moduna kilitle
+    if (screen.orientation && screen.orientation.lock) {
+      await screen.orientation.lock('landscape');
+    }
+  } catch (err) {
+    console.error("Tam ekran veya yatay mod hatası:", err);
+  }
+}
+
+// Kullanıcı ekranda herhangi bir yere dokunduğunda tetiklenir
+// Tarayıcılar güvenlik nedeniyle bu işlemi kullanıcı etkileşimi olmadan engeller
+document.addEventListener('click', function() {
+  makeLandscape();
+}, { once: true }); // Sadece ilk dokunuşta çalışması yeterli
+
+document.addEventListener('touchstart', function() {
+  makeLandscape();
+}, { once: true });
+</script>
+  
 </body>
 </html>
