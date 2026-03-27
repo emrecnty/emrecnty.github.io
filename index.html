@@ -396,5 +396,69 @@
       loadPlatform(activeSystem);
     })();
   </script>
+
+  <style>
+  #backToTopBtn {
+    display: none; /* Başlangıçta gizli */
+    position: fixed;
+    bottom: 30px; /* Alttan mesafe */
+    right: 30px;  /* Sağdan mesafe */
+    z-index: 9999; /* Diğer elementlerin üstünde durması için */
+    border: none;
+    outline: none;
+    background-color: var(--text); /* Temaya uygun koyu renk */
+    color: var(--panel);          /* Yazı rengi */
+    cursor: pointer;
+    padding: 15px;
+    border-radius: 50%;          /* Yuvarlak buton */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: background-color 0.3s, opacity 0.3s, transform 0.3s;
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+  }
+
+  #backToTopBtn:hover {
+    background-color: var(--muted); /* Hover efekti */
+    opacity: 1;
+    transform: translateY(-3px); /* Hafif yukarı kalkma efekti */
+  }
+</style>
+
+<button id="backToTopBtn" title="Yukarı Çık">
+  ↑
+</button>
+
+<script>
+  // Butonu değişkene atayalım
+  const backToTopBtn = document.getElementById("backToTopBtn");
+
+  // Kullanıcı sayfayı aşağı kaydırdığında çalışacak fonksiyon
+  window.onscroll = function() {scrollFunction()};
+
+  function scrollFunction() {
+    // Sayfa 300px'den fazla aşağı kaydırıldıysa butonu göster, yoksa gizle
+    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+      backToTopBtn.style.display = "flex";
+    } else {
+      backToTopBtn.style.display = "none";
+    }
+  }
+
+  // Butona tıklandığında çalışacak fonksiyon
+  backToTopBtn.addEventListener("click", function() {
+    // Sayfanın en üstüne pürüzsüz (smooth) bir şekilde kaydır
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+</script>
+
 </body>
 </html>
