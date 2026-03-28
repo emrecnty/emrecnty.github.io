@@ -101,6 +101,57 @@ document.addEventListener("touchstart", function () {
   if (navigator.vibrate) navigator.vibrate(30);
 }, { passive: true });
 </script>
+
+<script>
+    // Dökümandaki "Docs for Devs" yapısına göre hazırlanan ayarlar
+    window.EJS_VirtualGamepadSettings = [
+        {
+            type: "dpad",
+            location: "left",
+            left: "30%",      // Köşeden %20 sağa kaydırdık
+            top: "40%",       // Yukarıdan aşağıya konumu
+            inputValues: [4, 5, 6, 7] // Standart NES yön tuşları
+        },
+        {
+            type: "button",
+            text: "B",
+            id: "b",
+            location: "right",
+            left: 80,         // Piksel cinsinden
+            top: 40,
+            fontSize: 40,     // Buton boyutu
+            input_value: 8
+        },
+        {
+            type: "button",
+            text: "A",
+            id: "a",
+            location: "right",
+            left: 40,
+            top: 80,
+            fontSize: 40,
+            input_value: 0
+        },
+        {
+            type: "button",
+            text: "Start",
+            id: "start",
+            location: "center",
+            left: 60,
+            fontSize: 20,
+            input_value: 3
+        },
+        {
+            type: "button",
+            text: "Select",
+            id: "select",
+            location: "center",
+            left: -10,
+            fontSize: 20,
+            input_value: 2
+        }
+    ];
+</script>
   
   <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
