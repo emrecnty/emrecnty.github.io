@@ -95,31 +95,6 @@
     document.addEventListener("click", handleMobileView, { once: true });
     document.addEventListener("touchstart", handleMobileView, { once: true });
   </script>
-
-<script>
-// ====================== SANAL GAMEPAD AYARI ======================
-EJS_VirtualGamepadSettings = [
-    // SOL TARAF - D-Pad (büyük ve rahat)
-    { 
-        type: "dpad", 
-        location: "left", 
-        left: 25, 
-        top: 55, 
-        size: 130 
-    },
-
-    // SAĞ TARAF - Butonlar (klasik ABXY düzeni)
-    { type: "button", text: "Y", id: "y", location: "right", left: 35, top: 35, size: 55, input_value: 9 },
-    { type: "button", text: "X", id: "x", location: "right", left: 35, top: 85, size: 55, input_value: 1 },
-    { type: "button", text: "B", id: "b", location: "right", left: 80, top: 60, size: 55, input_value: 8 },
-    { type: "button", text: "A", id: "a", location: "right", left: 125, top: 85, size: 55, input_value: 0 },
-
-    // ALT TARAF - Start & Select
-    { type: "button", text: "SELECT", id: "select", location: "bottom", left: 35, size: 65, input_value: 2 },
-    { type: "button", text: "START",  id: "start",  location: "bottom", left: 110, size: 65, input_value: 3 }
-];
-// ================================================================
-<script>
   
 <script>
 document.addEventListener("touchstart", function () {
