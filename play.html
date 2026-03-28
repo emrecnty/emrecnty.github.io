@@ -18,6 +18,7 @@
       height: 100dvh;
     }
 
+    /* Sol üstteki geri butonu stili */
     .back-btn {
       position: fixed;
       top: 15px;
@@ -44,65 +45,64 @@
 </head>
 <body>
 
-<button class="back-btn" onclick="history.back()">← Geri</button>
+  <button class="back-btn" onclick="history.back()">← Geri</button>
 
-<div id="game"></div>
+  <div id="game"></div>
 
+  <script>
+    const params = new URLSearchParams(location.search);
+    const core = params.get("core");
+    const rom = params.get("rom");
+
+    if (!core || !rom) {
+      alert("Hata: Oyun verisi eksik!");
+      window.location.href = "./";
+    }
+
+    window.EJS_player = "#game";
+    window.EJS_core = core;
+    window.EJS_gameUrl = decodeURIComponent(rom);
+    window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+
+    // --- SADECE MOBİLDE TAM EKRAN VE YATAY MOD FONKSİYONU ---
+    async function handleMobileView() {
+      // Cihaz kontrolü (Mobil mi?)
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || 
+                       (window.innerWidth <= 1024);
+
+      if (!isMobile) return; // PC ise hiçbir şey yapma
+
+      try {
+        const elem = document.documentElement;
+        
+        // Tam ekrana geç
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          await elem.webkitRequestFullscreen();
+        }
+
+        // Ekranı yatay (landscape) kilitle
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock('landscape').catch(e => console.log("Oryantasyon hatası"));
+        }
+      } catch (err) {
+        console.log("Giriş etkileşimi gerekiyor veya desteklenmiyor.");
+      }
+    }
+
+    // İlk dokunuşta/tıklamada (Oyunu Başlat butonu dahil) çalışır
+    document.addEventListener("click", handleMobileView, { once: true });
+    document.addEventListener("touchstart", handleMobileView, { once: true });
+  </script>
+  
 <script>
-const params = new URLSearchParams(location.search);
-const core = params.get("core");
-const rom = params.get("rom");
-
-if (!core || !rom) {
-  alert("Hata: Oyun verisi eksik!");
-  window.location.href = "./";
-}
-
-window.EJS_player = "#game";
-window.EJS_core = core;
-window.EJS_gameUrl = decodeURIComponent(rom);
-window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-
-/* BURASI EKLENDİ – D-PAD VE BUTON BOYUTU */
-window.EJS_VirtualGamepadSettings = {
-  dpadSize: 230,
-  buttonSize: 100,
-  opacity: 0.9
-};
-
-/* MOBİLDE TAM EKRAN + YATAY MOD */
-async function handleMobileView() {
-
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-                   (window.innerWidth <= 1024);
-
-  if (!isMobile) return;
-
-  try {
-
-    const elem = document.documentElement;
-
-    if (elem.requestFullscreen) {
-      await elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) {
-      await elem.webkitRequestFullscreen();
-    }
-
-    if (screen.orientation && screen.orientation.lock) {
-      await screen.orientation.lock('landscape').catch(() => {});
-    }
-
-  } catch (err) {
-    console.log("Fullscreen desteklenmedi");
-  }
-}
-
-document.addEventListener("click", handleMobileView, { once: true });
-document.addEventListener("touchstart", handleMobileView, { once: true });
-
+document.addEventListener("touchstart", function () {
+  if (navigator.vibrate) navigator.vibrate(50);
+}, { passive: true });
 </script>
-
-<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+  
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 </body>
 </html>
