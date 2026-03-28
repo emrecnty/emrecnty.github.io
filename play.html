@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Oyun</title>
   <style>
     body {
@@ -16,9 +16,11 @@
     #game {
       width: 100%;
       height: 100dvh;
+      touch-action: none; /* Tarayıcı gecikmelerini önler */
+      user-select: none;
+      -webkit-user-select: none;
     }
 
-    /* Sol üstteki geri butonu stili */
     .back-btn {
       position: fixed;
       top: 15px;
@@ -36,10 +38,6 @@
       gap: 5px;
       backdrop-filter: blur(5px);
       transition: 0.2s;
-    }
-
-    .back-btn:hover {
-      background: rgba(50, 50, 50, 0.9);
     }
   </style>
 </head>
@@ -59,39 +57,56 @@
       window.location.href = "./";
     }
 
+    // --- EMULATORJS ANA AYARLAR ---
     window.EJS_player = "#game";
     window.EJS_core = core;
     window.EJS_gameUrl = decodeURIComponent(rom);
     window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 
-    // --- SADECE MOBİLDE TAM EKRAN VE YATAY MOD FONKSİYONU ---
-    async function handleMobileView() {
-      // Cihaz kontrolü (Mobil mi?)
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || 
-                       (window.innerWidth <= 1024);
+    // --- SANAL KONTROLÖR AYARLARI (VIRTUAL GAMEPAD) ---
+    // Bu ayarlar tüm platformlarda en iyi mobil kontrolü sağlar
+    window.EJS_VirtualGamepadSettings = {
+      vibration: true,       // Basma hissi için titreşim
+      fontSize: 50,          // Görünmez basma alanını genişletir
+      deadzone: 10,          // Joystick hassasiyeti
+      
+      // SOL TARAF: Akıcı Joystick (D-Pad yerine)
+      leftStick: {
+        type: 'zone',        // Nostalgia.NES tarzı kaydırma alanı
+        size: 140,           // Geniş kontrol alanı
+        position: { left: '12%', bottom: '15%' }
+      },
+      
+      // SAĞ TARAF: Aksiyon Butonları
+      // EmulatorJS, platforma göre (NES, SNES vb.) gereksiz olanları gizler
+      buttons: [
+        { name: 'a', position: { right: '8%', bottom: '22%' } },
+        { name: 'b', position: { right: '24%', bottom: '14%' } },
+        { name: 'x', position: { right: '8%', bottom: '38%' } },
+        { name: 'y', position: { right: '24%', bottom: '30%' } },
+        { name: 'l', position: { left: '5%', top: '15%' } },
+        { name: 'r', position: { right: '5%', top: '15%' } },
+        { name: 'start', position: { right: '45%', bottom: '8%' } },
+        { name: 'select', position: { left: '45%', bottom: '8%' } }
+      ]
+    };
 
-      if (!isMobile) return; // PC ise hiçbir şey yapma
+    // --- MOBİL GÖRÜNÜM VE TAM EKRAN ---
+    async function handleMobileView() {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (window.innerWidth <= 1024);
+      if (!isMobile) return;
 
       try {
         const elem = document.documentElement;
-        
-        // Tam ekrana geç
-        if (elem.requestFullscreen) {
-          await elem.requestFullscreen();
-        } else if (elem.webkitRequestFullscreen) {
-          await elem.webkitRequestFullscreen();
-        }
-
-        // Ekranı yatay (landscape) kilitle
+        if (elem.requestFullscreen) await elem.requestFullscreen();
         if (screen.orientation && screen.orientation.lock) {
-          await screen.orientation.lock('landscape').catch(e => console.log("Oryantasyon hatası"));
+          await screen.orientation.lock('landscape').catch(e => console.log("Yatay mod kilitlenemedi."));
         }
       } catch (err) {
-        console.log("Giriş etkileşimi gerekiyor veya desteklenmiyor.");
+        console.log("Kullanıcı etkileşimi bekleniyor.");
       }
     }
 
-    // İlk dokunuşta/tıklamada (Oyunu Başlat butonu dahil) çalışır
     document.addEventListener("click", handleMobileView, { once: true });
     document.addEventListener("touchstart", handleMobileView, { once: true });
   </script>
