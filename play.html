@@ -103,93 +103,84 @@ document.addEventListener("touchstart", function () {
 </script>
 
 <script>
-window.EJS_VirtualGamepadSettings = [
-        {
-            type: "dpad",
-            location: "left",
-            left: "1%",
-            right: "35%", 
-            top: "40%",
-            inputValues: [4, 5, 6, 7]
+EJS_VirtualGamepadSettings = [
+    {
+        type: "dpad",
+        location: "left",
+        left: "50%",
+        right: "50%",
+        joystickInput: false,
+        inputValues: [4, 5, 6, 7]
+    },
+    {
+        type: "button",
+        text: "Y",
+        id: "y",
+        location: "right",
+        left: 40,
+        bold: true,
+        input_value: 9
+    },
+    {
+        type: "button",
+        text: "X",
+        id: "X",
+        location: "right",
+        top: 40,
+        bold: true,
+        input_value: 1
+    },
+    {
+        type: "button",
+        text: "B",
+        id: "b",
+        location: "right",
+        left: 81,
+        top: 40,
+        bold: true,
+        input_value: 8
+    },
+    {
+        type: "button",
+        text: "A",
+        id: "a",
+        location: "right",
+        left: 40,
+        top: 80,
+        bold: true,
+        input_value: 0
+    },
+    {
+        type: "button",
+        text: "Start",
+        id: "start",
+        location: "center",
+        left: 60,
+        fontSize: 15,
+        block: true,
+        input_value: 3
+    },
+    {
+        type: "button",
+        text: "Select",
+        id: "select",
+        location: "center",
+        left: -5,
+        fontSize: 15,
+        block: true,
+        input_value: 2
+    }
+    { 
+        type: "button", 
+        text: "Geri Sar", 
+        id: "rewind", 
+        location: "center",
+        left: 80, 
+        fontSize: 15, 
+        block: true, 
+        input_value: 26 
         },
-        { 
-            type: "button", 
-            text: "Y", 
-            id: "y", 
-            location: "right", 
-            left: 75, 
-            top: 40, 
-            fontSize: 45, 
-            bold: true, 
-            input_value: 9 
-        }, 
-        { 
-            type: "button", 
-            text: "X", 
-            id: "X", 
-            location: "right", 
-            left: -5, 
-            top: 115, 
-            fontSize: 45, 
-            bold: true, 
-            input_value: 1 
-        }, 
-        { 
-            type: "button", 
-            text: "A", 
-            id: "a", 
-            location: "right", 
-            left: 155, 
-            top: 115, 
-            fontSize: 45, 
-            bold: true, 
-            input_value: 0 
-        }, 
-        { 
-            type: "button", 
-            text: "B", 
-            id: "b", 
-            location: "right", 
-            left: 75, 
-            top: 190, 
-            fontSize: 45, 
-            bold: true, 
-            input_value: 8 
-        }, 
-        { 
-            type: "button", 
-            text: "Geri Sar", 
-            id: "rewind", 
-            location: "right", 
-            left: 60, 
-            top: -45, 
-            fontSize: 22, 
-            bold: true, 
-            input_value: 26 
-        },
-        { 
-            type: "button", 
-            text: "BAŞLAT", 
-            id: "start", 
-            location: "center", 
-            left: 100, 
-            top: 85, 
-            fontSize: 20, 
-            block: true, 
-            input_value: 3 
-        },
-        { 
-            type: "button", 
-            text: "SEÇ", 
-            id: "select", 
-            location: "center", 
-            left: -60, 
-            top: 85, 
-            fontSize: 20, 
-            block: true, 
-            input_value: 2 
-        }
-    ];
+]
 </script>
   
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
