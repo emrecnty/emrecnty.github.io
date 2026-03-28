@@ -108,9 +108,12 @@ document.addEventListener("touchstart", function () {
         {
             type: "dpad",
             location: "left",
-            left: "30%",      // Köşeden %20 sağa kaydırdık
-            top: "40%",       // Yukarıdan aşağıya konumu
-            inputValues: [4, 5, 6, 7] // Standart NES yön tuşları
+            // SOL ve SAĞ değerlerini birbirine yakın tutarsan D-pad küçülür, 
+            // arayı açarsan (mesela left 10, right 60) D-pad devleşir.
+            left: "15%",      
+            right: "55%",     // Bu değer dpad'in sağ sınırını belirler. 55 yaparak alanı genişlettik.
+            top: "40%",       
+            inputValues: [4, 5, 6, 7]
         },
         {
             type: "button",
