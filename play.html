@@ -2,11 +2,18 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Oyun</title>
   <style>
     body { margin: 0; background: #000; color: #fff; font-family: Arial, sans-serif; overflow: hidden; }
     #game { width: 100%; height: 100dvh; }
+    
+    /* --- DPAD'İ ZORLA BÜYÜTEN CSS (INJECTION) --- */
+    canvas + div, .emulatorjs-gamepad { 
+      transform: scale(1.5); /* Tüm kontrolleri %50 büyütür */
+      transform-origin: bottom left; /* Sol alttan başlayarak büyütür */
+    }
+
     .back-btn {
       position: fixed; top: 15px; left: 15px; z-index: 99999;
       background: rgba(0, 0, 0, 0.7); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3);
@@ -24,19 +31,14 @@
     const core = params.get("core");
     const rom = params.get("rom");
 
-    if (!core || !rom) {
-      alert("Hata: Oyun verisi eksik!");
-      window.location.href = "./";
-    }
-
     window.EJS_player = "#game";
     window.EJS_core = core;
     window.EJS_gameUrl = decodeURIComponent(rom);
     window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 
-    // --- SADECE DPAD VE BUTON BOYUTUNU BÜYÜTME ---
-    window.EJS_settings = {
-        fontSize: 100 // Varsayılan boyutu ciddi oranda artırır
+    // Ayarları doğrudan objeye ekliyoruz
+    window.EJS_VirtualGamepadSettings = {
+        fontSize: 80 // Kod bazlı büyütme desteği varsa çalışır
     };
 
     async function handleMobileView() {
@@ -47,9 +49,9 @@
         if (elem.requestFullscreen) { await elem.requestFullscreen(); }
         else if (elem.webkitRequestFullscreen) { await elem.webkitRequestFullscreen(); }
         if (screen.orientation && screen.orientation.lock) {
-          await screen.orientation.lock('landscape').catch(e => console.log("Oryantasyon hatası"));
+          await screen.orientation.lock('landscape').catch(e => {});
         }
-      } catch (err) { console.log("Giriş etkileşimi gerekiyor."); }
+      } catch (err) {}
     }
 
     document.addEventListener("click", handleMobileView, { once: true });
