@@ -296,56 +296,45 @@ function findDpadCandidate(els) {
   if (!baseCandidates.length) return null;
 
   if (core === "snes") {
-    const lButton = els.find(el => getButtonKey(el) === "l" && isVisible(el));
-    const lRect = lButton ? lButton.getBoundingClientRect() : null;
+    const probePoints = [
+      [0.10, 0.58],
+      [0.13, 0.58],
+      [0.16, 0.58],
+      [0.13, 0.50],
+      [0.13, 0.66]
+    ];
 
-    const snesCandidates = baseCandidates.filter(el => {
-      const rect = el.getBoundingClientRect();
-      const ratio = rect.width / rect.height;
+    const hitCounts = new Map();
 
-      if (ratio < 0.75 || ratio > 1.35) return false;
+    for (const [rx, ry] of probePoints) {
+      const x = Math.floor(window.innerWidth * rx);
+      const y = Math.floor(window.innerHeight * ry);
+      const stack = document.elementsFromPoint(x, y);
 
-      // L ile çakışan veya aynı kapsayıcı zincirindeki elemanları alma
-      if (lButton) {
-        if (el === lButton) return false;
-        if (el.contains(lButton) || lButton.contains(el)) return false;
+      for (const el of stack) {
+        if (!isVisible(el)) continue;
+        if (getButtonKey(el)) continue;
+        if (el === editBtn || el === fsBtn) continue;
+        if (el.classList.contains("control-btn")) continue;
+        if (el.closest("#editPanel")) continue;
 
-        if (lRect) {
-          const overlapX = Math.max(0, Math.min(rect.right, lRect.right) - Math.max(rect.left, lRect.left));
-          const overlapY = Math.max(0, Math.min(rect.bottom, lRect.bottom) - Math.max(rect.top, lRect.top));
-          const overlapArea = overlapX * overlapY;
-          if (overlapArea > 0) return false;
-        }
+        const rect = el.getBoundingClientRect();
+        const txt = (el.textContent || "").trim();
+        if (txt.length > 0) continue;
+        if (rect.left > window.innerWidth * 0.35) continue;
+        if (rect.width < 40 || rect.height < 40) continue;
+        if (rect.width > 260 || rect.height > 260) continue;
+
+        hitCounts.set(el, (hitCounts.get(el) || 0) + 1);
       }
+    }
 
-      // SNES dpad genelde L'nin altında/ayrı bölgede olur
-      if (lRect && rect.top <= lRect.bottom + 8) return false;
+    const snesHits = [...hitCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(entry => entry[0]);
 
-      // Uzun yatay/dikey kapsayıcıları alma
-      if (rect.width > 220 || rect.height > 220) return false;
-
-      return true;
-    });
-
-    if (snesCandidates.length) {
-      snesCandidates.sort((a, b) => {
-        const ar = a.getBoundingClientRect();
-        const br = b.getBoundingClientRect();
-
-        const aSquarePenalty = Math.abs((ar.width / ar.height) - 1) * 1000;
-        const bSquarePenalty = Math.abs((br.width / br.height) - 1) * 1000;
-
-        // L'nin altına daha yakın olanı tercih et
-        const aTopBias = lRect ? Math.abs(ar.top - (lRect.bottom + 12)) : ar.top;
-        const bTopBias = lRect ? Math.abs(br.top - (lRect.bottom + 12)) : br.top;
-
-        const aScore = getRectScore(ar) - aSquarePenalty - aTopBias;
-        const bScore = getRectScore(br) - bSquarePenalty - bTopBias;
-
-        return bScore - aScore;
-      });
-
-      return snesCandidates[0];
+    if (snesHits.length) {
+      return snesHits[0];
     }
   }
 
