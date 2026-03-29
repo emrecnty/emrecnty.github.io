@@ -19,7 +19,7 @@ width:100%;
 height:100dvh;
 }
 
-/* ortak buton stili */
+/* Butonlar */
 .control-btn{
 position:fixed;
 top:15px;
@@ -52,35 +52,9 @@ left:15px;
 left:90px;
 }
 
-/* edit butonu */
-.edit-btn{
-position:fixed;
-top:15px;
-right:55px; /* üç çizgiden uzak */
-z-index:99999;
-
-width:34px;
-height:34px;
-
-background:rgba(0,0,0,.7); /* beyaz değil */
-color:#fff;
-
-border:1px solid rgba(255,255,255,.3);
-border-radius:50%;
-
-display:flex;
-align-items:center;
-justify-content:center;
-
-font-size:18px;
-cursor:pointer;
-
-backdrop-filter:blur(5px);
-transition:.2s;
-}
-
-.edit-btn:hover{
-background:rgba(50,50,50,.9);
+.edit-mode-active{
+outline:2px dashed rgba(255,255,255,.7) !important;
+outline-offset:4px;
 }
 
 </style>
@@ -91,9 +65,6 @@ background:rgba(50,50,50,.9);
 <button class="control-btn back-btn" onclick="history.back()">←</button>
 
 <button id="fullscreenBtn" class="control-btn fullscreen-btn">⛶</button>
-
-<!-- düzenleme butonu -->
-<button id="editBtn" class="edit-btn">✚</button>
 
 <div id="game"></div>
 
@@ -116,6 +87,57 @@ window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
 /* fullscreen toggle */
 
 const fsBtn=document.getElementById("fullscreenBtn");
+
+
+const editBtn = document.getElementById("editBtn");
+let editMode = false;
+
+function getEmulatorControls() {
+  const all = [...document.querySelectorAll("button, div, span, canvas")];
+
+  return all.filter(el => {
+    if (el === editBtn || el === fsBtn) return false;
+    if (el.classList.contains("back-btn")) return false;
+    if (el.classList.contains("control-btn")) return false;
+
+    const txt = (el.textContent || "").trim().toUpperCase();
+    const rect = el.getBoundingClientRect();
+    const style = getComputedStyle(el);
+
+    if (style.display === "none" || style.visibility === "hidden") return false;
+    if (rect.width < 18 || rect.height < 18) return false;
+
+    const isKnownButton = ["A","B","X","Y","L","R","START","SELECT"].includes(txt);
+
+    const looksLikeLeftPad =
+      rect.left < window.innerWidth * 0.35 &&
+      rect.top > window.innerHeight * 0.25 &&
+      rect.width > 50 &&
+      rect.height > 50 &&
+      txt.length === 0;
+
+    return isKnownButton || looksLikeLeftPad;
+  });
+}
+
+function setEditMode(state) {
+  editMode = state;
+  const controls = getEmulatorControls();
+
+  controls.forEach(el => {
+    if (editMode) {
+      el.classList.add("edit-mode-active");
+    } else {
+      el.classList.remove("edit-mode-active");
+    }
+  });
+}
+
+editBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  setEditMode(!editMode);
+});
+
 
 fsBtn.addEventListener("click",async()=>{
 
@@ -141,7 +163,7 @@ document.webkitExitFullscreen();
 
 });
 
-// oyun alanına ilk dokunuşta fullscreen
+// Start Game sonrası ilk dokunuşta fullscreen
 document.getElementById("game").addEventListener("click", async () => {
 
   if (!document.fullscreenElement) {
@@ -158,7 +180,7 @@ document.getElementById("game").addEventListener("click", async () => {
   }
 
 }, { once:true });
-
+  
 </script>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
