@@ -274,7 +274,7 @@ function getButtonKey(el) {
 }
 
 function findDpadCandidate(els) {
-  const baseCandidates = els.filter(el => {
+  const candidates = els.filter(el => {
     if (!isVisible(el)) return false;
     if (getButtonKey(el)) return false;
     if (el === editBtn || el === fsBtn) return false;
@@ -287,61 +287,13 @@ function findDpadCandidate(els) {
     if (rect.width < 48 || rect.height < 48) return false;
     if (rect.width > window.innerWidth * 0.42) return false;
 
+    const ratio = rect.width / rect.height;
+    if (ratio < 0.55 || ratio > 1.8) return false;
+
     const txt = (el.textContent || "").trim();
     if (txt.length > 0) return false;
 
     return true;
-  });
-
-  if (!baseCandidates.length) return null;
-
-  if (core === "snes") {
-    const probePoints = [
-      [0.10, 0.58],
-      [0.13, 0.58],
-      [0.16, 0.58],
-      [0.13, 0.50],
-      [0.13, 0.66]
-    ];
-
-    const hitCounts = new Map();
-
-    for (const [rx, ry] of probePoints) {
-      const x = Math.floor(window.innerWidth * rx);
-      const y = Math.floor(window.innerHeight * ry);
-      const stack = document.elementsFromPoint(x, y);
-
-      for (const el of stack) {
-        if (!isVisible(el)) continue;
-        if (getButtonKey(el)) continue;
-        if (el === editBtn || el === fsBtn) continue;
-        if (el.classList.contains("control-btn")) continue;
-        if (el.closest("#editPanel")) continue;
-
-        const rect = el.getBoundingClientRect();
-        const txt = (el.textContent || "").trim();
-        if (txt.length > 0) continue;
-        if (rect.left > window.innerWidth * 0.35) continue;
-        if (rect.width < 40 || rect.height < 40) continue;
-        if (rect.width > 260 || rect.height > 260) continue;
-
-        hitCounts.set(el, (hitCounts.get(el) || 0) + 1);
-      }
-    }
-
-    const snesHits = [...hitCounts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(entry => entry[0]);
-
-    if (snesHits.length) {
-      return snesHits[0];
-    }
-  }
-
-  const candidates = baseCandidates.filter(el => {
-    const rect = el.getBoundingClientRect();
-    const ratio = rect.width / rect.height;
-    return ratio >= 0.55 && ratio <= 1.8;
   });
 
   if (!candidates.length) return null;
