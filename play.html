@@ -43,13 +43,15 @@
 
     .edit-btn,
     .save-btn,
+    .reset-btn,
     .edit-panel {
       display: none;
       box-sizing: border-box;
     }
 
     .edit-btn,
-    .save-btn {
+    .save-btn,
+    .reset-btn {
       position: fixed;
       z-index: 2147483647;
       border: 1px solid rgba(255,255,255,.28);
@@ -74,6 +76,15 @@
     .save-btn {
       top: 14px;
       right: 64px;
+      height: 40px;
+      padding: 0 14px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    .reset-btn {
+      top: 14px;
+      right: 126px;
       height: 40px;
       padding: 0 14px;
       border-radius: 10px;
@@ -112,7 +123,8 @@
       background: rgba(0, 122, 255, .78);
     }
 
-    .save-btn.show {
+    .save-btn.show,
+    .reset-btn.show {
       display: inline-flex;
     }
 
@@ -195,6 +207,7 @@
   <button class="back-btn" onclick="history.back()">← Geri</button>
   <button id="editControlsBtn" class="edit-btn" type="button" aria-label="Kontrolleri düzenle"><span class="dpad-icon" aria-hidden="true"></span></button>
   <button id="saveControlsBtn" class="save-btn" type="button">Save</button>
+  <button id="resetControlsBtn" class="reset-btn" type="button">Reset</button>
 
   <div id="editPanel" class="edit-panel">
     <div class="row">
@@ -247,13 +260,14 @@
     document.addEventListener("click", handleMobileView, { once: true });
     document.addEventListener("touchstart", handleMobileView, { once: true });
 
-    const STORAGE_KEY = `ejs_control_layout_v1:${core}:${decodeURIComponent(rom)}`;
+    const STORAGE_KEY = `ejs_control_layout_v1:${core}`;
 
     const editBtn = document.getElementById("editControlsBtn");
     const saveBtn = document.getElementById("saveControlsBtn");
     const editPanel = document.getElementById("editPanel");
     const sizeSlider = document.getElementById("sizeSlider");
     const sizeValue = document.getElementById("sizeValue");
+    const resetBtn = document.getElementById("resetControlsBtn");
 
     let editMode = false;
     let selectedControl = null;
@@ -267,6 +281,7 @@
       editBtn.style.display = visible ? "inline-flex" : "none";
       if (!visible) {
         saveBtn.style.display = "none";
+        resetBtn.style.display = "none";
         editPanel.style.display = "none";
       }
     }
@@ -576,7 +591,9 @@
       editMode = true;
       editBtn.classList.add("active");
       saveBtn.classList.add("show");
+      resetBtn.classList.add("show");
       saveBtn.style.display = "inline-flex";
+      resetBtn.style.display = "inline-flex";
 
       const controls = findControls();
       controls.forEach(el => {
@@ -590,7 +607,9 @@
       editMode = false;
       editBtn.classList.remove("active");
       saveBtn.classList.remove("show");
+      resetBtn.classList.remove("show");
       saveBtn.style.display = "none";
+      resetBtn.style.display = "none";
       editPanel.classList.remove("show");
       editPanel.style.display = "none";
 
@@ -610,6 +629,25 @@
       const controls = findControls();
       controls.forEach(saveElementState);
       persistLayout({ ...current, ...saveQueue });
+      exitEditMode();
+    }
+
+    function resetAllControls() {
+      localStorage.removeItem(STORAGE_KEY);
+      saveQueue = {};
+      const controls = findControls();
+      controls.forEach(el => {
+        el.style.position = "";
+        el.style.left = "";
+        el.style.top = "";
+        el.style.right = "";
+        el.style.bottom = "";
+        el.style.margin = "";
+        el.style.zIndex = "";
+        el.style.transformOrigin = "";
+        el.style.transform = "";
+        delete el.dataset.ejsScale;
+      });
       exitEditMode();
     }
 
@@ -636,9 +674,14 @@
       saveAllControls();
     });
 
+    resetBtn.addEventListener("click", () => {
+      if (!isMobileDevice()) return;
+      resetAllControls();
+    });
+
     function syncOverlayHost() {
       const host = document.fullscreenElement || document.webkitFullscreenElement || document.body;
-      [editBtn, saveBtn, editPanel].forEach(el => {
+      [editBtn, saveBtn, resetBtn, editPanel].forEach(el => {
         if (el.parentElement !== host) host.appendChild(el);
       });
       badgeMap.forEach(badge => {
@@ -647,6 +690,7 @@
       setMobileUiVisibility();
       if (editMode) {
         saveBtn.style.display = "inline-flex";
+        resetBtn.style.display = "inline-flex";
       }
     }
 
