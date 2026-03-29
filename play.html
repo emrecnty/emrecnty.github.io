@@ -410,8 +410,10 @@
         used.add(el);
       });
 
-      const dpad = detectDpadCandidate(els.filter(el => !used.has(el) && el !== editBtn && el !== saveBtn && el !== editPanel && !el.closest("#editPanel")));
+      let dpad = detectDpadCandidate(els.filter(el => !used.has(el) && el !== editBtn && el !== saveBtn && el !== editPanel && !el.closest("#editPanel")));
       if (dpad) {
+        const innerPad = dpad.querySelector("div");
+        if (innerPad && isVisibleControl(innerPad)) dpad = innerPad;
         dpad.dataset.ejsControlKey = "dpad";
         controls.push(dpad);
       }
