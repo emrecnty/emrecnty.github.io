@@ -18,7 +18,6 @@
       height: 100dvh;
     }
 
-    /* Sol üstteki geri butonu stili */
     .back-btn {
       position: fixed;
       top: 15px;
@@ -41,11 +40,159 @@
     .back-btn:hover {
       background: rgba(50, 50, 50, 0.9);
     }
+
+    .edit-btn,
+    .save-btn,
+    .edit-panel {
+      display: none;
+    }
+
+    body.mobile-edit-ui .edit-btn,
+    body.mobile-edit-ui .save-btn {
+      position: fixed;
+      top: 15px;
+      z-index: 100001;
+      border: 1px solid rgba(255,255,255,.28);
+      background: rgba(0,0,0,.72);
+      color: #fff;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+    }
+
+    body.mobile-edit-ui .edit-btn {
+      display: inline-flex;
+      right: 15px;
+    }
+
+    body.mobile-edit-ui .save-btn {
+      right: 110px;
+    }
+
+    body.mobile-edit-ui .save-btn.show {
+      display: inline-flex;
+    }
+
+    body.mobile-edit-ui .edit-panel {
+      position: fixed;
+      right: 15px;
+      top: 68px;
+      z-index: 100001;
+      width: min(280px, calc(100vw - 30px));
+      background: rgba(0,0,0,.78);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 16px;
+      padding: 14px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    }
+
+    body.mobile-edit-ui .edit-panel.show {
+      display: block;
+    }
+
+    .edit-panel h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .edit-panel .muted {
+      font-size: 12px;
+      color: rgba(255,255,255,.7);
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+
+    .edit-panel label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .edit-panel input[type="range"] {
+      width: 100%;
+    }
+
+    .edit-panel .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .edit-panel .value {
+      min-width: 44px;
+      text-align: right;
+      font-size: 13px;
+      color: rgba(255,255,255,.9);
+    }
+
+    .edit-panel .reset-btn {
+      margin-top: 12px;
+      width: 100%;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .ejs-edit-mode {
+      outline: 2px dashed rgba(255, 214, 74, .95) !important;
+      outline-offset: 4px;
+      cursor: move !important;
+      touch-action: none !important;
+      user-select: none !important;
+    }
+
+    .ejs-edit-selected {
+      outline: 3px solid rgba(90, 200, 250, .95) !important;
+      outline-offset: 5px;
+    }
+
+    .ejs-edit-badge {
+      position: fixed;
+      z-index: 100002;
+      pointer-events: none;
+      background: rgba(0,0,0,.82);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      line-height: 1;
+      transform: translate(-50%, -140%);
+      white-space: nowrap;
+      display: none;
+    }
   </style>
 </head>
 <body>
-
   <button class="back-btn" onclick="history.back()">← Geri</button>
+  <button id="editControlsBtn" class="edit-btn" type="button">Düzenle</button>
+  <button id="saveControlsBtn" class="save-btn" type="button">Save</button>
+
+  <div id="editPanel" class="edit-panel">
+    <h3>Kontrol Düzeni</h3>
+    <div class="muted">
+      Düzenle açıkken bir tuşa dokunup sürükle. Boyutu değiştirmek için önce o tuşu seç.
+    </div>
+
+    <label for="sizeSlider">Boyut</label>
+    <div class="row">
+      <input id="sizeSlider" type="range" min="0.60" max="2.20" step="0.05" value="1">
+      <div id="sizeValue" class="value">1.00x</div>
+    </div>
+
+    <button id="resetControlsBtn" class="reset-btn" type="button">Kaydı Sıfırla</button>
+  </div>
 
   <div id="game"></div>
 
@@ -64,126 +211,475 @@
     window.EJS_gameUrl = decodeURIComponent(rom);
     window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 
-    // --- SADECE MOBİLDE TAM EKRAN VE YATAY MOD FONKSİYONU ---
-    async function handleMobileView() {
-      // Cihaz kontrolü (Mobil mi?)
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || 
-                       (window.innerWidth <= 1024);
+    function isMobileDevice() {
+      return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 1024;
+    }
 
-      if (!isMobile) return; // PC ise hiçbir şey yapma
+    async function handleMobileView() {
+      if (!isMobileDevice()) return;
 
       try {
         const elem = document.documentElement;
-        
-        // Tam ekrana geç
+
         if (elem.requestFullscreen) {
           await elem.requestFullscreen();
         } else if (elem.webkitRequestFullscreen) {
           await elem.webkitRequestFullscreen();
         }
 
-        // Ekranı yatay (landscape) kilitle
         if (screen.orientation && screen.orientation.lock) {
-          await screen.orientation.lock('landscape').catch(e => console.log("Oryantasyon hatası"));
+          await screen.orientation.lock("landscape").catch(() => {});
         }
       } catch (err) {
         console.log("Giriş etkileşimi gerekiyor veya desteklenmiyor.");
       }
     }
 
-    // İlk dokunuşta/tıklamada (Oyunu Başlat butonu dahil) çalışır
     document.addEventListener("click", handleMobileView, { once: true });
     document.addEventListener("touchstart", handleMobileView, { once: true });
+
+    if (isMobileDevice()) {
+      document.body.classList.add("mobile-edit-ui");
+    }
+
+    const STORAGE_KEY = `ejs_control_layout_v1:${core}:${decodeURIComponent(rom)}`;
+
+    const editBtn = document.getElementById("editControlsBtn");
+    const saveBtn = document.getElementById("saveControlsBtn");
+    const editPanel = document.getElementById("editPanel");
+    const sizeSlider = document.getElementById("sizeSlider");
+    const sizeValue = document.getElementById("sizeValue");
+    const resetBtn = document.getElementById("resetControlsBtn");
+
+    let editMode = false;
+    let selectedControl = null;
+    let dragState = null;
+    let saveQueue = {};
+    let badgeMap = new Map();
+    let bindDone = false;
+
+    function loadLayout() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function persistLayout(layout) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+    }
+
+    function clearLayout() {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+
+    function clamp(num, min, max) {
+      return Math.max(min, Math.min(max, num));
+    }
+
+    function pxToVw(px) {
+      return +(px / window.innerWidth * 100).toFixed(3);
+    }
+
+    function pxToVh(px) {
+      return +(px / window.innerHeight * 100).toFixed(3);
+    }
+
+    function vwToPx(vw) {
+      return (vw / 100) * window.innerWidth;
+    }
+
+    function vhToPx(vh) {
+      return (vh / 100) * window.innerHeight;
+    }
+
+    function getTextKey(el) {
+      const txt = (el.textContent || "").trim().toUpperCase();
+      if (txt === "A") return "a";
+      if (txt === "B") return "b";
+      if (txt === "X") return "x";
+      if (txt === "Y") return "y";
+      if (txt === "L") return "l";
+      if (txt === "R") return "r";
+      if (txt === "START") return "start";
+      if (txt === "SELECT") return "select";
+      return null;
+    }
+
+    function getRectScore(rect) {
+      return rect.width * rect.height;
+    }
+
+    function isVisibleControl(el) {
+      const rect = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      return rect.width > 18 &&
+             rect.height > 18 &&
+             style.display !== "none" &&
+             style.visibility !== "hidden" &&
+             parseFloat(style.opacity || "1") > 0.02;
+    }
+
+    function detectDpadCandidate(elements) {
+      const candidates = elements.filter(el => {
+        if (!isVisibleControl(el)) return false;
+        if (getTextKey(el)) return false;
+
+        const rect = el.getBoundingClientRect();
+        if (rect.left > window.innerWidth * 0.45) return false;
+        if (rect.top < window.innerHeight * 0.20) return false;
+        if (rect.width < 54 || rect.height < 54) return false;
+
+        const txt = (el.textContent || "").trim();
+        return txt.length === 0;
+      });
+
+      if (!candidates.length) return null;
+      return candidates.sort((a, b) => getRectScore(b.getBoundingClientRect()) - getRectScore(a.getBoundingClientRect()))[0];
+    }
+
+    function findControls() {
+      const els = [...document.querySelectorAll("button, div, span, canvas")];
+      const controls = [];
+      const used = new Set();
+
+      els.forEach(el => {
+        const key = getTextKey(el);
+        if (!key) return;
+        if (!isVisibleControl(el)) return;
+
+        const rect = el.getBoundingClientRect();
+        if (rect.left < 0 || rect.top < 0) return;
+
+        el.dataset.ejsControlKey = key;
+        controls.push(el);
+        used.add(el);
+      });
+
+      const dpad = detectDpadCandidate(els.filter(el => !used.has(el) && !el.closest("#editPanel")));
+      if (dpad) {
+        dpad.dataset.ejsControlKey = "dpad";
+        controls.push(dpad);
+      }
+
+      return controls;
+    }
+
+    function getControlLabel(key) {
+      return {
+        dpad: "D-Pad",
+        a: "A",
+        b: "B",
+        x: "X",
+        y: "Y",
+        l: "L",
+        r: "R",
+        start: "START",
+        select: "SELECT"
+      }[key] || key.toUpperCase();
+    }
+
+    function getBadge(el) {
+      if (badgeMap.has(el)) return badgeMap.get(el);
+
+      const badge = document.createElement("div");
+      badge.className = "ejs-edit-badge";
+      document.body.appendChild(badge);
+      badgeMap.set(el, badge);
+      return badge;
+    }
+
+    function updateBadge(el) {
+      const key = el.dataset.ejsControlKey || "?";
+      const badge = getBadge(el);
+      const rect = el.getBoundingClientRect();
+      const scale = +(el.dataset.ejsScale || "1");
+      badge.textContent = `${getControlLabel(key)} • ${scale.toFixed(2)}x`;
+      badge.style.left = `${rect.left + rect.width / 2}px`;
+      badge.style.top = `${rect.top}px`;
+      badge.style.display = editMode && isMobileDevice() ? "block" : "none";
+    }
+
+    function hideBadges() {
+      badgeMap.forEach(badge => {
+        badge.style.display = "none";
+      });
+    }
+
+    function saveElementState(el) {
+      const key = el.dataset.ejsControlKey;
+      if (!key) return;
+
+      const rect = el.getBoundingClientRect();
+      const scale = +(el.dataset.ejsScale || "1");
+
+      saveQueue[key] = {
+        left: pxToVw(rect.left),
+        top: pxToVh(rect.top),
+        scale: +scale.toFixed(2)
+      };
+    }
+
+    function applyLayoutToElement(el, data) {
+      if (!data) return;
+
+      el.style.position = "fixed";
+      el.style.left = `${vwToPx(data.left)}px`;
+      el.style.top = `${vhToPx(data.top)}px`;
+      el.style.right = "auto";
+      el.style.bottom = "auto";
+      el.style.margin = "0";
+      el.style.zIndex = "99998";
+      el.style.transformOrigin = "center center";
+      el.style.transform = `scale(${data.scale || 1})`;
+      el.dataset.ejsScale = String(data.scale || 1);
+
+      updateBadge(el);
+    }
+
+    function applySavedLayout() {
+      const saved = loadLayout();
+      const controls = findControls();
+
+      controls.forEach(el => {
+        const key = el.dataset.ejsControlKey;
+        if (!key || !saved[key]) return;
+        applyLayoutToElement(el, saved[key]);
+      });
+    }
+
+    function selectControl(el) {
+      const controls = findControls();
+      controls.forEach(node => node.classList.remove("ejs-edit-selected"));
+
+      selectedControl = el;
+      if (!selectedControl) {
+        sizeSlider.value = "1";
+        sizeValue.textContent = "1.00x";
+        return;
+      }
+
+      selectedControl.classList.add("ejs-edit-selected");
+      const scale = +(selectedControl.dataset.ejsScale || "1");
+      sizeSlider.value = scale.toFixed(2);
+      sizeValue.textContent = `${scale.toFixed(2)}x`;
+      updateBadge(selectedControl);
+    }
+
+    function startDrag(el, e) {
+      if (!editMode || !isMobileDevice()) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      selectControl(el);
+
+      const rect = el.getBoundingClientRect();
+      dragState = {
+        el,
+        startX: e.clientX,
+        startY: e.clientY,
+        left: rect.left,
+        top: rect.top
+      };
+
+      if (el.setPointerCapture) {
+        try { el.setPointerCapture(e.pointerId); } catch {}
+      }
+    }
+
+    function moveDrag(e) {
+      if (!editMode || !dragState || !isMobileDevice()) return;
+
+      e.preventDefault();
+
+      const dx = e.clientX - dragState.startX;
+      const dy = e.clientY - dragState.startY;
+
+      const el = dragState.el;
+      const rect = el.getBoundingClientRect();
+
+      const nextLeft = clamp(dragState.left + dx, 0, window.innerWidth - rect.width);
+      const nextTop = clamp(dragState.top + dy, 0, window.innerHeight - rect.height);
+
+      el.style.position = "fixed";
+      el.style.left = `${nextLeft}px`;
+      el.style.top = `${nextTop}px`;
+      el.style.right = "auto";
+      el.style.bottom = "auto";
+      el.style.margin = "0";
+      el.style.zIndex = "99998";
+
+      saveElementState(el);
+      updateBadge(el);
+    }
+
+    function endDrag() {
+      if (!dragState) return;
+      saveElementState(dragState.el);
+      updateBadge(dragState.el);
+      dragState = null;
+    }
+
+    function bindControl(el) {
+      if (el.dataset.ejsEditorBound === "1") return;
+      el.dataset.ejsEditorBound = "1";
+
+      el.addEventListener("pointerdown", (e) => {
+        if (!editMode || !isMobileDevice()) return;
+        startDrag(el, e);
+      });
+
+      el.addEventListener("pointermove", (e) => {
+        if (!editMode || !dragState || dragState.el !== el || !isMobileDevice()) return;
+        moveDrag(e);
+      });
+
+      el.addEventListener("pointerup", () => {
+        if (!editMode || !isMobileDevice()) return;
+        endDrag();
+      });
+
+      el.addEventListener("pointercancel", () => {
+        if (!editMode || !isMobileDevice()) return;
+        endDrag();
+      });
+
+      el.addEventListener("click", (e) => {
+        if (!editMode || !isMobileDevice()) return;
+        e.preventDefault();
+        e.stopPropagation();
+        selectControl(el);
+      });
+    }
+
+    function bindControlsOnceReady() {
+      const controls = findControls();
+      if (!controls.length) return false;
+
+      controls.forEach(bindControl);
+
+      if (!bindDone) {
+        applySavedLayout();
+        bindDone = true;
+      }
+
+      return true;
+    }
+
+    function enterEditMode() {
+      if (!isMobileDevice()) return;
+
+      editMode = true;
+      editBtn.textContent = "Düzenleme Açık";
+      saveBtn.classList.add("show");
+      editPanel.classList.add("show");
+
+      const controls = findControls();
+      controls.forEach(el => {
+        bindControl(el);
+        el.classList.add("ejs-edit-mode");
+        updateBadge(el);
+      });
+
+      if (!selectedControl && controls.length) {
+        selectControl(controls[0]);
+      }
+    }
+
+    function exitEditMode() {
+      editMode = false;
+      editBtn.textContent = "Düzenle";
+      saveBtn.classList.remove("show");
+      editPanel.classList.remove("show");
+
+      const controls = findControls();
+      controls.forEach(el => {
+        el.classList.remove("ejs-edit-mode");
+        el.classList.remove("ejs-edit-selected");
+      });
+
+      selectedControl = null;
+      dragState = null;
+      hideBadges();
+    }
+
+    function saveAllControls() {
+      const current = loadLayout();
+      const controls = findControls();
+
+      controls.forEach(saveElementState);
+
+      const merged = { ...current, ...saveQueue };
+      persistLayout(merged);
+      exitEditMode();
+      alert("Kontrol düzeni kaydedildi.");
+    }
+
+    function resetControls() {
+      clearLayout();
+      saveQueue = {};
+      alert("Kayıtlı kontrol düzeni silindi. Sayfa yeniden yükleniyor.");
+      location.reload();
+    }
+
+    sizeSlider.addEventListener("input", () => {
+      if (!isMobileDevice()) return;
+
+      const value = +sizeSlider.value;
+      sizeValue.textContent = `${value.toFixed(2)}x`;
+
+      if (!selectedControl) return;
+
+      selectedControl.dataset.ejsScale = String(value);
+      selectedControl.style.transformOrigin = "center center";
+      selectedControl.style.transform = `scale(${value})`;
+
+      saveElementState(selectedControl);
+      updateBadge(selectedControl);
+    });
+
+    editBtn.addEventListener("click", () => {
+      if (!isMobileDevice()) return;
+      if (editMode) exitEditMode();
+      else enterEditMode();
+    });
+
+    saveBtn.addEventListener("click", () => {
+      if (!isMobileDevice()) return;
+      saveAllControls();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      if (!isMobileDevice()) return;
+      resetControls();
+    });
+
+    function waitForEmulatorControls() {
+      let tries = 0;
+      const timer = setInterval(() => {
+        tries += 1;
+        const ok = bindControlsOnceReady();
+
+        if (ok || tries > 40) {
+          clearInterval(timer);
+        }
+      }, 500);
+    }
+
+    window.addEventListener("resize", () => {
+      if (!bindDone || !isMobileDevice()) return;
+      applySavedLayout();
+      findControls().forEach(updateBadge);
+    });
+
+    window.addEventListener("load", () => {
+      if (!isMobileDevice()) return;
+      waitForEmulatorControls();
+    });
   </script>
-  
-<script>
-document.addEventListener("touchstart", function () {
-  if (navigator.vibrate) navigator.vibrate(30);
-}, { passive: true });
-</script>
 
-<script>
-EJS_VirtualGamepadSettings = [
-    {
-        type: "dpad",
-        location: "left",
-        left: "50%",
-        right: "50%",
-        joystickInput: false,
-        inputValues: [4, 5, 6, 7]
-    },
-    {
-        type: "button",
-        text: "Y",
-        id: "y",
-        location: "right",
-        left: 40,
-        bold: true,
-        input_value: 9
-    },
-    {
-        type: "button",
-        text: "X",
-        id: "X",
-        location: "right",
-        top: 40,
-        bold: true,
-        input_value: 1
-    },
-    {
-        type: "button",
-        text: "B",
-        id: "b",
-        location: "right",
-        left: 80,
-        top: 40,
-        bold: true,
-        input_value: 8
-    },
-    {
-        type: "button",
-        text: "A",
-        id: "a",
-        location: "right",
-        left: 40,
-        top: 80,
-        bold: true,
-        input_value: 0
-    },
-    {
-        type: "button",
-        text: "Start",
-        id: "start",
-        location: "center",
-        left: 60,
-        fontSize: 15,
-        block: true,
-        input_value: 3
-    },
-    {
-        type: "button",
-        text: "Select",
-        id: "select",
-        location: "center",
-        left: -5,
-        fontSize: 15,
-        block: true,
-        input_value: 2
-    },
-    { 
-        type: "button", 
-        text: "Geri Sar", 
-        id: "rewind", 
-        location: "center",
-        left: 140, 
-        fontSize: 15, 
-        block: true, 
-        input_value: 26 
-     },
-]
-</script>
-  
-<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
-
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 </body>
 </html>
