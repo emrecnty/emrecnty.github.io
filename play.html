@@ -106,6 +106,24 @@ document.webkitExitFullscreen();
 
 });
 
+// Start Game sonrası ilk dokunuşta fullscreen
+document.getElementById("game").addEventListener("click", async () => {
+
+  if (!document.fullscreenElement) {
+
+    const el = document.documentElement;
+
+    if (el.requestFullscreen) {
+      await el.requestFullscreen();
+    } 
+    else if (el.webkitRequestFullscreen) {
+      await el.webkitRequestFullscreen();
+    }
+
+  }
+
+}, { once:true });
+  
 </script>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
