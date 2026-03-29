@@ -274,7 +274,7 @@ function getButtonKey(el) {
 }
 
 function findDpadCandidate(els) {
-  const candidates = els.filter(el => {
+  const baseCandidates = els.filter(el => {
     if (!isVisible(el)) return false;
     if (getButtonKey(el)) return false;
     if (el === editBtn || el === fsBtn) return false;
@@ -287,13 +287,72 @@ function findDpadCandidate(els) {
     if (rect.width < 48 || rect.height < 48) return false;
     if (rect.width > window.innerWidth * 0.42) return false;
 
-    const ratio = rect.width / rect.height;
-    if (ratio < 0.55 || ratio > 1.8) return false;
-
     const txt = (el.textContent || "").trim();
     if (txt.length > 0) return false;
 
     return true;
+  });
+
+  if (!baseCandidates.length) return null;
+
+  if (core === "snes") {
+    const lButton = els.find(el => getButtonKey(el) === "l" && isVisible(el));
+    const lRect = lButton ? lButton.getBoundingClientRect() : null;
+
+    const snesCandidates = baseCandidates.filter(el => {
+      const rect = el.getBoundingClientRect();
+      const ratio = rect.width / rect.height;
+
+      if (ratio < 0.75 || ratio > 1.35) return false;
+
+      // L ile çakışan veya aynı kapsayıcı zincirindeki elemanları alma
+      if (lButton) {
+        if (el === lButton) return false;
+        if (el.contains(lButton) || lButton.contains(el)) return false;
+
+        if (lRect) {
+          const overlapX = Math.max(0, Math.min(rect.right, lRect.right) - Math.max(rect.left, lRect.left));
+          const overlapY = Math.max(0, Math.min(rect.bottom, lRect.bottom) - Math.max(rect.top, lRect.top));
+          const overlapArea = overlapX * overlapY;
+          if (overlapArea > 0) return false;
+        }
+      }
+
+      // SNES dpad genelde L'nin altında/ayrı bölgede olur
+      if (lRect && rect.top <= lRect.bottom + 8) return false;
+
+      // Uzun yatay/dikey kapsayıcıları alma
+      if (rect.width > 220 || rect.height > 220) return false;
+
+      return true;
+    });
+
+    if (snesCandidates.length) {
+      snesCandidates.sort((a, b) => {
+        const ar = a.getBoundingClientRect();
+        const br = b.getBoundingClientRect();
+
+        const aSquarePenalty = Math.abs((ar.width / ar.height) - 1) * 1000;
+        const bSquarePenalty = Math.abs((br.width / br.height) - 1) * 1000;
+
+        // L'nin altına daha yakın olanı tercih et
+        const aTopBias = lRect ? Math.abs(ar.top - (lRect.bottom + 12)) : ar.top;
+        const bTopBias = lRect ? Math.abs(br.top - (lRect.bottom + 12)) : br.top;
+
+        const aScore = getRectScore(ar) - aSquarePenalty - aTopBias;
+        const bScore = getRectScore(br) - bSquarePenalty - bTopBias;
+
+        return bScore - aScore;
+      });
+
+      return snesCandidates[0];
+    }
+  }
+
+  const candidates = baseCandidates.filter(el => {
+    const rect = el.getBoundingClientRect();
+    const ratio = rect.width / rect.height;
+    return ratio >= 0.55 && ratio <= 1.8;
   });
 
   if (!candidates.length) return null;
