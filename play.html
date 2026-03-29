@@ -51,6 +51,58 @@ left:15px;
 .fullscreen-btn{
 left:90px;
 }
+
+/* düzenleme butonu - sadece görünüm, henüz işlev yok */
+.edit-btn{
+position:fixed;
+top:15px;
+right:15px;
+z-index:99999;
+width:44px;
+height:44px;
+padding:0;
+border-radius:50%;
+border:1px solid rgba(255,255,255,.28);
+background:rgba(0,0,0,.72);
+color:#fff;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+backdrop-filter:blur(5px);
+transition:.2s;
+}
+
+.edit-btn:hover{
+background:rgba(50,50,50,.9);
+}
+
+.edit-btn .dpad-icon{
+position:relative;
+width:18px;
+height:18px;
+}
+
+.edit-btn .dpad-icon::before,
+.edit-btn .dpad-icon::after{
+content:"";
+position:absolute;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+background:#fff;
+border-radius:3px;
+}
+
+.edit-btn .dpad-icon::before{
+width:18px;
+height:6px;
+}
+
+.edit-btn .dpad-icon::after{
+width:6px;
+height:18px;
+}
 </style>
 </head>
 
@@ -59,6 +111,10 @@ left:90px;
 <button class="control-btn back-btn" onclick="history.back()">←</button>
 
 <button id="fullscreenBtn" class="control-btn fullscreen-btn">⛶</button>
+
+<button id="editControlsBtn" class="edit-btn" type="button" aria-label="Kontrolleri düzenle">
+  <span class="dpad-icon"></span>
+</button>
 
 <div id="game"></div>
 
@@ -123,6 +179,12 @@ document.getElementById("game").addEventListener("click", async () => {
   }
 
 }, { once:true });
+
+// İlk adım: sadece buton var, henüz işlev eklenmedi
+const editBtn = document.getElementById("editControlsBtn");
+editBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
   
 </script>
 
