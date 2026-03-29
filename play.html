@@ -2,8 +2,8 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Oyun - Mobil Düzenleme</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Oyun</title>
   <style>
     body {
       margin: 0;
@@ -12,166 +12,249 @@
       font-family: Arial, sans-serif;
       overflow: hidden;
       touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
 
-    #game { width: 100%; height: 100dvh; }
+    #game {
+      width: 100%;
+      height: 100dvh;
+      position: relative;
+    }
 
-    /* Navigasyon Butonları */
-    .nav-buttons {
+    /* Sol üstteki geri butonu */
+    .back-btn {
       position: fixed;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      display: flex;
-      justify-content: space-between;
-      z-index: 100000;
-      pointer-events: none;
-    }
-
-    .btn {
-      pointer-events: auto;
+      top: 15px;
+      left: 15px;
+      z-index: 10000;
       background: rgba(0, 0, 0, 0.6);
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 8px 15px;
+      padding: 8px 16px;
       border-radius: 20px;
       font-size: 13px;
       backdrop-filter: blur(4px);
+      cursor: pointer;
     }
 
-    /* Sadece Mobilde Görünecek Düzenleme Paneli */
-    #mobile-edit-ui {
-      display: none; /* JS ile mobil kontrolü sonrası açılacak */
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(20, 20, 20, 0.95);
-      padding: 12px;
-      border-radius: 15px;
-      z-index: 100001;
-      border: 1px solid #007bff;
-      flex-direction: column;
-      gap: 10px;
-      width: 80%;
-      max-width: 300px;
-    }
+    /* DÜZENLEME MODU STİLLERİ (Sadece Mobil) */
+    @media (max-width: 1024px) {
+      
+      /* 2. Madde: Sağ üstteki D-Pad görünümlü Düzenleme Butonu */
+      #edit-toggle-icon {
+        position: fixed;
+        top: 15px;
+        right: 40px; /* Tık içerde */
+        width: 40px;
+        height: 40px;
+        z-index: 10001;
+        background-color: rgba(0, 0, 0, 0.6);
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="white" d="M40 5h20v25H40zM40 70h20v25H40zM5 40h25v20H5zM70 40h25v20H70zM35 35h30v30H35z"/></svg>');
+        background-size: 80%;
+        background-position: center;
+        background-repeat: no-repeat;
+        border: 2px solid #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        cursor: pointer;
+        opacity: 0.8;
+      }
 
-    .row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-    #save-btn { background: #28a745; border: none; padding: 8px; border-radius: 5px; color: white; font-weight: bold; }
+      #edit-toggle-icon.active {
+        background-color: #d9534f;
+        border-color: #d9534f;
+      }
 
-    /* Düzenleme Modu Görsel Efekti */
-    .edit-active {
-      outline: 2px dashed #007bff !important;
-      background: rgba(0, 123, 255, 0.2) !important;
+      /* 4. Madde: Orta üstte çıkan Boyutlandırma Paneli (Yatay) */
+      #size-panel-wrapper {
+        position: fixed;
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(15, 15, 15, 0.95);
+        border: 1px solid #007bff;
+        padding: 10px;
+        border-radius: 12px;
+        z-index: 10002;
+        display: none; /* Sadece tuşa basınca açılır */
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+      }
+
+      #size-slider {
+        width: 150px;
+        height: 8px;
+        cursor: pointer;
+      }
+
+      #save-btn-floating {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: bold;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      /* Düzenleme modunda tuşların etrafındaki mavi çerçeve */
+      .ejs-control-edit-active {
+        outline: 2px dashed #007bff !important;
+        outline-offset: 4px;
+        background-color: rgba(0, 123, 255, 0.2) !important;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="nav-buttons">
-    <button class="btn" onclick="history.back()">← Geri</button>
-    <button class="btn" id="edit-toggle-btn" style="display:none;">⚙ Tuşları Düzenle</button>
-  </div>
+  <button class="back-btn" onclick="history.back()">← Geri</button>
 
-  <div id="mobile-edit-ui">
-    <div class="row">
-      <span>Buton Boyutu:</span>
-      <input type="range" id="size-slider" min="0.5" max="2.0" step="0.1" value="1">
-    </div>
-    <button id="save-btn">💾 Düzeni Kaydet</button>
+  <div id="edit-toggle-icon" title="Tuşları Düzenle"></div>
+  
+  <div id="size-panel-wrapper">
+    <small style="color:#aaa">Boyut:</small>
+    <input type="range" id="size-slider" min="0.5" max="2.0" step="0.1" value="1">
+    <button id="save-btn-floating">Kaydet</button>
   </div>
 
   <div id="game"></div>
 
   <script>
-    // Mobil Cihaz Kontrolü
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
     const params = new URLSearchParams(location.search);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (window.innerWidth <= 1024);
+
     window.EJS_player = "#game";
     window.EJS_core = params.get("core");
     window.EJS_gameUrl = decodeURIComponent(params.get("rom"));
     window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 
+    if (!EJS_core || !EJS_gameUrl) {
+      alert("Hata: Oyun verisi eksik!");
+      window.location.href = "./";
+    }
+
+    // --- MOBİL DÜZENLEME MANTIĞI ---
     let editMode = false;
+    let selectedElement = null;
+    let dragData = { x: 0, y: 0, shiftX: 0, shiftY: 0 };
 
     if (isMobile) {
-      // Sadece mobilde düzenleme butonunu göster
-      document.getElementById('edit-toggle-btn').style.display = 'block';
+      const toggleBtn = document.getElementById('edit-toggle-icon');
+      const sizePanel = document.getElementById('size-panel-wrapper');
+      const slider = document.getElementById('size-slider');
+      const saveBtn = document.getElementById('save-btn-floating');
 
-      document.getElementById('edit-toggle-btn').onclick = function() {
+      // 3. Madde: Düzenleme Moduna Giriş
+      toggleBtn.onclick = function() {
         editMode = !editMode;
-        document.getElementById('mobile-edit-ui').style.display = editMode ? 'flex' : 'none';
-        this.textContent = editMode ? '✖ Kapat' : '⚙ Tuşları Düzenle';
+        this.classList.toggle('active');
+        
+        // Panel kapansın, seçili tuş sıfırlansın
+        sizePanel.style.display = 'none';
+        selectedElement = null;
 
-        const buttons = document.querySelectorAll('div[class*="ejs-"], .ejs-touch-button');
-        buttons.forEach(btn => {
+        // Tüm EJS tuşlarını bul ve işaretle
+        const ejsElements = document.querySelectorAll('div[class*="ejs-"], .ejs-touch-button');
+        ejsElements.forEach(el => {
           if (editMode) {
-            btn.classList.add('edit-active');
-            enableTouchDrag(btn);
+            el.classList.add('ejs-control-edit-active');
+            attachDragAndSelect(el);
           } else {
-            btn.classList.remove('edit-active');
+            el.classList.remove('ejs-control-edit-active');
           }
         });
       };
-    }
 
-    function enableTouchDrag(el) {
-      el.ontouchstart = function(e) {
-        if (!editMode) return;
-        let touch = e.touches[0];
-        let shiftX = touch.clientX - el.getBoundingClientRect().left;
-        let shiftY = touch.clientY - el.getBoundingClientRect().top;
+      // 4. Madde: Taşıma ve Seçme (Slider'ı açar)
+      function attachDragAndSelect(el) {
+        el.ontouchstart = function(e) {
+          if (!editMode) return;
+          e.preventDefault(); // Varsayılan dokunma efektini engelle
 
-        function moveAt(pageX, pageY) {
-          el.style.position = 'fixed';
-          el.style.left = (pageX - shiftX) + 'px';
-          el.style.top = (pageY - shiftY) + 'px';
-          el.style.bottom = 'auto';
-          el.style.right = 'auto';
-        }
+          // Tuşu Seç
+          if (selectedElement) selectedElement.style.outlineColor = "#007bff"; // Eski seçiliyi sıfırla
+          selectedElement = el;
+          selectedElement.style.outlineColor = "#28a745"; // Seçiliyi yeşil yap
 
-        function onTouchMove(event) {
-          moveAt(event.touches[0].clientX, event.touches[0].clientY);
-        }
+          // Slider Panelini Aç ve Değerini Güncelle
+          sizePanel.style.display = 'flex';
+          const currentScale = el.style.transform ? el.style.transform.replace('scale(', '').replace(')', '') : '1';
+          slider.value = currentScale;
 
-        document.addEventListener('touchmove', onTouchMove, {passive: false});
+          // Sürükleme Başlangıcı
+          const touch = e.touches[0];
+          const rect = el.getBoundingClientRect();
+          dragData.shiftX = touch.clientX - rect.left;
+          dragData.shiftY = touch.clientY - rect.top;
 
-        el.ontouchend = function() {
-          document.removeEventListener('touchmove', onTouchMove);
-          el.ontouchend = null;
+          function onTouchMove(moveEvent) {
+            const moveTouch = moveEvent.touches[0];
+            el.style.position = 'fixed';
+            el.style.left = (moveTouch.clientX - dragData.shiftX) + 'px';
+            el.style.top = (moveTouch.clientY - dragData.shiftY) + 'px';
+            el.style.bottom = 'auto';
+            el.style.right = 'auto';
+            
+            // Panel de tuşla birlikte hareket etmesin diye konumunu sabitle
+            sizePanel.style.left = '50%';
+            sizePanel.style.top = '15px';
+            sizePanel.style.transform = 'translateX(-50%)';
+          }
+
+          document.addEventListener('touchmove', onTouchMove, {passive: false});
+
+          el.ontouchend = function() {
+            document.removeEventListener('touchmove', onTouchMove);
+            el.ontouchend = null;
+          };
         };
+      }
+
+      // Slider ile sadece seçili tuşun boyutunu değiştir
+      slider.oninput = function(e) {
+        if (selectedElement) {
+          selectedElement.style.transform = `scale(${e.target.value})`;
+        }
       };
+
+      // 5. Madde: Kalıcı Kayıt
+      saveBtn.onclick = function() {
+        const layout = {};
+        const ejsElements = document.querySelectorAll('div[class*="ejs-"], .ejs-touch-button');
+        
+        ejsElements.forEach((el, index) => {
+          const id = el.id || el.className.split(' ')[0] || `btn-${index}`;
+          layout[id] = {
+            t: el.style.top,
+            l: el.style.left,
+            s: el.style.transform
+          };
+        });
+
+        localStorage.setItem('ejs_mobile_layout_v2', JSON.stringify(layout));
+        alert('Düzen kaydedildi!');
+        // Düzenleme modundan çık
+        toggleBtn.click();
+      };
+    } else {
+      // PC ise mobil elemanları kaldır
+      document.getElementById('edit-toggle-icon').remove();
+      document.getElementById('size-panel-wrapper').remove();
     }
 
-    document.getElementById('size-slider').oninput = (e) => {
-      document.querySelectorAll('.edit-active').forEach(btn => {
-        btn.style.transform = `scale(${e.target.value})`;
-      });
-    };
-
-    document.getElementById('save-btn').onclick = () => {
-      const layout = {};
-      document.querySelectorAll('div[class*="ejs-"], .ejs-touch-button').forEach((btn, i) => {
-        layout[btn.id || `b-${i}`] = {
-          t: btn.style.top,
-          l: btn.style.left,
-          s: btn.style.transform,
-          c: btn.className
-        };
-      });
-      localStorage.setItem('mobile_layout', JSON.stringify(layout));
-      alert('Mobil düzen kaydedildi!');
-    };
-
-    // Kayıtlı düzeni periyodik olarak uygula (EmulatorJS dinamik olduğu için)
-    setInterval(() => {
-      const saved = localStorage.getItem('mobile_layout');
-      if (saved && isMobile) {
+    // Kayıtlı düzeni uygulama (Sürekli kontrol eder, çünkü EJS tuşları sonradan oluşturur)
+    function applySavedLayout() {
+      if (!isMobile || editMode) return; // Düzenleme modundaysa uygulama
+      const saved = localStorage.getItem('ejs_mobile_layout_v2');
+      if (saved) {
         const data = JSON.parse(saved);
         Object.keys(data).forEach(id => {
-          const el = document.getElementById(id) || document.querySelector(`.${data[id].c.split(' ').join('.')}`);
+          // Hem ID hem sınıf ile bulmaya çalış
+          const el = document.getElementById(id) || document.querySelector('.' + id);
           if (el) {
             el.style.position = 'fixed';
             el.style.top = data[id].t;
@@ -182,9 +265,27 @@
           }
         });
       }
-    }, 1000);
+    }
+    // EJS'in buton oluşturma hızına göre periyodik kontrol
+    setInterval(applySavedLayout, 500);
+
+    // --- MOBİL TAM EKRAN (GİRİŞ ETKİLEŞİMİ GEREKİR) ---
+    if (isMobile) {
+      const handleFullscreen = async () => {
+        try {
+          const elem = document.documentElement;
+          if (elem.requestFullscreen) await elem.requestFullscreen();
+          if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape').catch(() => {});
+          }
+        } catch (err) {}
+      };
+      // İlk dokunuşta tam ekrana geç
+      document.addEventListener("touchstart", handleFullscreen, { once: true });
+    }
   </script>
 
   <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+
 </body>
 </html>
