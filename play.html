@@ -7,49 +7,140 @@
 
 <style>
 body{
-margin:0;
-background:#000;
-color:#fff;
-font-family:Arial,Helvetica,sans-serif;
-overflow:hidden;
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:Arial,Helvetica,sans-serif;
+  overflow:hidden;
 }
 
 #game{
-width:100%;
-height:100dvh;
+  width:100%;
+  height:100dvh;
 }
 
-/* Butonlar */
 .control-btn{
-position:fixed;
-top:15px;
-z-index:99999;
-background:rgba(0,0,0,.7);
-color:#fff;
-border:1px solid rgba(255,255,255,.3);
-padding:6px 12px;
-border-radius:18px;
-font-size:12px;
-cursor:pointer;
-display:flex;
-align-items:center;
-gap:4px;
-backdrop-filter:blur(5px);
-transition:.2s;
+  position:fixed;
+  top:15px;
+  z-index:99999;
+  background:rgba(0,0,0,.7);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.3);
+  padding:6px 12px;
+  border-radius:18px;
+  font-size:12px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  backdrop-filter:blur(5px);
+  transition:.2s;
 }
 
 .control-btn:hover{
-background:rgba(50,50,50,.9);
+  background:rgba(50,50,50,.9);
 }
 
-/* geri */
 .back-btn{
-left:15px;
+  left:15px;
 }
 
-/* fullscreen */
 .fullscreen-btn{
-left:90px;
+  left:66px;
+}
+
+.edit-btn{
+  right:56px;
+  width:32px;
+  height:32px;
+  padding:0;
+  border-radius:50%;
+  font-size:16px;
+  line-height:1;
+}
+
+#editPanel{
+  position:fixed;
+  left:50%;
+  top:12px;
+  transform:translateX(-50%);
+  z-index:100001;
+  display:none;
+  align-items:center;
+  gap:10px;
+  padding:8px 10px;
+  background:rgba(0,0,0,.78);
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:18px;
+  backdrop-filter:blur(6px);
+  max-width:calc(100vw - 20px);
+}
+
+#editPanel.show{
+  display:flex;
+}
+
+#editPanel .panel-label{
+  font-size:12px;
+  white-space:nowrap;
+}
+
+#sizeSlider{
+  width:min(160px, 34vw);
+}
+
+#sizeValue{
+  width:44px;
+  text-align:center;
+  font-size:12px;
+}
+
+.panel-btn{
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:14px;
+  padding:6px 10px;
+  font-size:12px;
+  cursor:pointer;
+}
+
+.panel-btn:active{
+  transform:translateY(1px);
+}
+
+.ejs-edit-target{
+  outline:2px dashed rgba(255,255,255,.72) !important;
+  outline-offset:4px;
+  touch-action:none !important;
+  user-select:none !important;
+  cursor:move !important;
+}
+
+.ejs-edit-selected{
+  outline:3px dashed rgba(87,184,255,.98) !important;
+  outline-offset:5px;
+}
+
+#selectedBadge{
+  position:fixed;
+  left:50%;
+  top:54px;
+  transform:translateX(-50%);
+  z-index:100001;
+  display:none;
+  padding:4px 10px;
+  font-size:11px;
+  background:rgba(0,0,0,.72);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;
+  backdrop-filter:blur(6px);
+  pointer-events:none;
+}
+
+#selectedBadge.show{
+  display:block;
 }
 </style>
 </head>
@@ -57,73 +148,409 @@ left:90px;
 <body>
 
 <button class="control-btn back-btn" onclick="history.back()">←</button>
+<button id="fullscreenBtn" class="control-btn fullscreen-btn" type="button">⛶</button>
+<button id="editBtn" class="control-btn edit-btn" type="button" aria-label="Kontrolleri düzenle">✛</button>
 
-<button id="fullscreenBtn" class="control-btn fullscreen-btn">⛶</button>
+<div id="editPanel" aria-hidden="true">
+  <span class="panel-label">Boyut</span>
+  <input id="sizeSlider" type="range" min="0.60" max="2.00" step="0.05" value="1.00">
+  <span id="sizeValue">1.00x</span>
+  <button id="saveBtn" class="panel-btn" type="button">Save</button>
+  <button id="resetBtn" class="panel-btn" type="button">Reset</button>
+</div>
+<div id="selectedBadge"></div>
 
 <div id="game"></div>
 
 <script>
+const params = new URLSearchParams(location.search);
+const core = params.get("core");
+const rom = params.get("rom");
 
-const params=new URLSearchParams(location.search);
-const core=params.get("core");
-const rom=params.get("rom");
-
-if(!core||!rom){
-alert("Hata: Oyun verisi eksik!");
-window.location.href="./";
+if (!core || !rom) {
+  alert("Hata: Oyun verisi eksik!");
+  window.location.href = "./";
 }
 
-window.EJS_player="#game";
-window.EJS_core=core;
-window.EJS_gameUrl=decodeURIComponent(rom);
-window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
+window.EJS_player = "#game";
+window.EJS_core = core;
+window.EJS_gameUrl = decodeURIComponent(rom);
+window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 
-/* fullscreen toggle */
+const fsBtn = document.getElementById("fullscreenBtn");
+const gameEl = document.getElementById("game");
 
-const fsBtn=document.getElementById("fullscreenBtn");
-
-fsBtn.addEventListener("click",async()=>{
-
-if(!document.fullscreenElement){
-
-const el=document.documentElement;
-
-if(el.requestFullscreen){
-await el.requestFullscreen();
-}else if(el.webkitRequestFullscreen){
-await el.webkitRequestFullscreen();
+async function enterFullscreen() {
+  const el = document.documentElement;
+  if (document.fullscreenElement) return;
+  if (el.requestFullscreen) {
+    await el.requestFullscreen();
+  } else if (el.webkitRequestFullscreen) {
+    await el.webkitRequestFullscreen();
+  }
 }
 
-}else{
-
-if(document.exitFullscreen){
-document.exitFullscreen();
-}else if(document.webkitExitFullscreen){
-document.webkitExitFullscreen();
+async function exitFullscreen() {
+  if (!document.fullscreenElement) return;
+  if (document.exitFullscreen) {
+    await document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) {
+    await document.webkitExitFullscreen();
+  }
 }
 
-}
-
+fsBtn.addEventListener("click", async (e) => {
+  e.stopPropagation();
+  if (!document.fullscreenElement) {
+    await enterFullscreen();
+  } else {
+    await exitFullscreen();
+  }
 });
 
-// Start Game sonrası ilk dokunuşta fullscreen
-document.getElementById("game").addEventListener("click", async () => {
+gameEl.addEventListener("click", async () => {
+  if (!document.fullscreenElement) await enterFullscreen();
+}, { once: true });
 
-  if (!document.fullscreenElement) {
+gameEl.addEventListener("touchstart", async () => {
+  if (!document.fullscreenElement) await enterFullscreen();
+}, { once: true });
 
-    const el = document.documentElement;
+const editBtn = document.getElementById("editBtn");
+const editPanel = document.getElementById("editPanel");
+const sizeSlider = document.getElementById("sizeSlider");
+const sizeValue = document.getElementById("sizeValue");
+const saveBtn = document.getElementById("saveBtn");
+const resetBtn = document.getElementById("resetBtn");
+const selectedBadge = document.getElementById("selectedBadge");
 
-    if (el.requestFullscreen) {
-      await el.requestFullscreen();
-    } 
-    else if (el.webkitRequestFullscreen) {
-      await el.webkitRequestFullscreen();
-    }
+const LAYOUT_KEY = `ejs_layout_core_v1:${core}`;
+let editMode = false;
+let selectedControl = null;
+let dragState = null;
+let controlsCache = [];
 
+function loadLayout() {
+  try {
+    return JSON.parse(localStorage.getItem(LAYOUT_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveLayout(data) {
+  localStorage.setItem(LAYOUT_KEY, JSON.stringify(data));
+}
+
+function clearLayout() {
+  localStorage.removeItem(LAYOUT_KEY);
+}
+
+function getRectScore(rect) {
+  return rect.width * rect.height;
+}
+
+function isVisible(el) {
+  const rect = el.getBoundingClientRect();
+  const style = getComputedStyle(el);
+  return rect.width > 16 &&
+         rect.height > 16 &&
+         style.display !== "none" &&
+         style.visibility !== "hidden" &&
+         parseFloat(style.opacity || "1") > 0.02;
+}
+
+function getButtonKey(el) {
+  const txt = (el.textContent || "").trim().toUpperCase();
+  if (txt === "A") return "a";
+  if (txt === "B") return "b";
+  if (txt === "X") return "x";
+  if (txt === "Y") return "y";
+  if (txt === "L") return "l";
+  if (txt === "R") return "r";
+  if (txt === "START") return "start";
+  if (txt === "SELECT") return "select";
+  return null;
+}
+
+function findDpadCandidate(els) {
+  const candidates = els.filter(el => {
+    if (!isVisible(el)) return false;
+    if (getButtonKey(el)) return false;
+    if (el === editBtn || el === fsBtn) return false;
+    if (el.classList.contains("control-btn")) return false;
+    if (el.closest("#editPanel")) return false;
+
+    const rect = el.getBoundingClientRect();
+    if (rect.left > window.innerWidth * 0.42) return false;
+    if (rect.top < window.innerHeight * 0.20) return false;
+    if (rect.width < 48 || rect.height < 48) return false;
+    if (rect.width > window.innerWidth * 0.42) return false;
+
+    const ratio = rect.width / rect.height;
+    if (ratio < 0.55 || ratio > 1.8) return false;
+
+    const txt = (el.textContent || "").trim();
+    if (txt.length > 0) return false;
+
+    return true;
+  });
+
+  if (!candidates.length) return null;
+
+  candidates.sort((a, b) => {
+    const ar = a.getBoundingClientRect();
+    const br = b.getBoundingClientRect();
+    const aPenalty = Math.abs((ar.width / ar.height) - 1);
+    const bPenalty = Math.abs((br.width / br.height) - 1);
+    return (getRectScore(br) - bPenalty * 1000) - (getRectScore(ar) - aPenalty * 1000);
+  });
+
+  let dpad = candidates[0];
+  const innerPad = dpad.querySelector("div");
+  if (innerPad && isVisible(innerPad)) dpad = innerPad;
+  return dpad;
+}
+
+function scanControls() {
+  const els = [...document.querySelectorAll("button, div, span, canvas")];
+  const found = [];
+  const used = new Set();
+
+  els.forEach(el => {
+    const key = getButtonKey(el);
+    if (!key || !isVisible(el)) return;
+    if (el === editBtn || el === fsBtn) return;
+    if (el.classList.contains("control-btn")) return;
+
+    el.dataset.ejsControlKey = key;
+    found.push(el);
+    used.add(el);
+  });
+
+  let dpad = findDpadCandidate(els.filter(el => !used.has(el)));
+  if (dpad) {
+    dpad.dataset.ejsControlKey = "dpad";
+    found.push(dpad);
   }
 
-}, { once:true });
-  
+  return found;
+}
+
+function keyLabel(key) {
+  return {
+    a:"A", b:"B", x:"X", y:"Y", l:"L", r:"R",
+    start:"START", select:"SELECT", dpad:"D-PAD"
+  }[key] || key.toUpperCase();
+}
+
+function pxToVw(px) {
+  return +(px / window.innerWidth * 100).toFixed(3);
+}
+function pxToVh(px) {
+  return +(px / window.innerHeight * 100).toFixed(3);
+}
+function vwToPx(vw) {
+  return (vw / 100) * window.innerWidth;
+}
+function vhToPx(vh) {
+  return (vh / 100) * window.innerHeight;
+}
+
+function applySavedLayout() {
+  const saved = loadLayout();
+  const controls = scanControls();
+
+  controls.forEach(el => {
+    const key = el.dataset.ejsControlKey;
+    const item = saved[key];
+    if (!item) return;
+
+    el.style.position = "fixed";
+    el.style.left = vwToPx(item.left) + "px";
+    el.style.top = vhToPx(item.top) + "px";
+    el.style.right = "auto";
+    el.style.bottom = "auto";
+    el.style.margin = "0";
+    el.style.transformOrigin = "center center";
+    el.style.transform = `scale(${item.scale || 1})`;
+    el.dataset.ejsScale = String(item.scale || 1);
+  });
+}
+
+function refreshControlsCache() {
+  controlsCache = scanControls();
+  return controlsCache;
+}
+
+function enterEditMode() {
+  refreshControlsCache();
+  editMode = true;
+  editPanel.classList.add("show");
+  editPanel.setAttribute("aria-hidden", "false");
+
+  controlsCache.forEach(el => {
+    el.classList.add("ejs-edit-target");
+    bindControl(el);
+  });
+}
+
+function exitEditMode() {
+  editMode = false;
+  dragState = null;
+  selectedControl = null;
+  editPanel.classList.remove("show");
+  editPanel.setAttribute("aria-hidden", "true");
+  selectedBadge.classList.remove("show");
+
+  refreshControlsCache().forEach(el => {
+    el.classList.remove("ejs-edit-target");
+    el.classList.remove("ejs-edit-selected");
+  });
+
+  sizeSlider.value = "1.00";
+  sizeValue.textContent = "1.00x";
+}
+
+function selectControl(el) {
+  refreshControlsCache().forEach(node => node.classList.remove("ejs-edit-selected"));
+  selectedControl = el;
+  selectedControl.classList.add("ejs-edit-selected");
+
+  const scale = +(selectedControl.dataset.ejsScale || "1");
+  sizeSlider.value = scale.toFixed(2);
+  sizeValue.textContent = `${scale.toFixed(2)}x`;
+  selectedBadge.textContent = keyLabel(selectedControl.dataset.ejsControlKey || "?");
+  selectedBadge.classList.add("show");
+}
+
+function saveCurrentLayout() {
+  const layout = loadLayout();
+  refreshControlsCache().forEach(el => {
+    const key = el.dataset.ejsControlKey;
+    const rect = el.getBoundingClientRect();
+    const scale = +(el.dataset.ejsScale || "1");
+    layout[key] = {
+      left: pxToVw(rect.left),
+      top: pxToVh(rect.top),
+      scale: +scale.toFixed(2)
+    };
+  });
+  saveLayout(layout);
+  exitEditMode();
+}
+
+function resetCurrentCore() {
+  clearLayout();
+  exitEditMode();
+  location.reload();
+}
+
+function bindControl(el) {
+  if (el.dataset.ejsEditBound === "1") return;
+  el.dataset.ejsEditBound = "1";
+  el.style.touchAction = "none";
+
+  el.addEventListener("pointerdown", (e) => {
+    if (!editMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    selectControl(el);
+    const rect = el.getBoundingClientRect();
+    dragState = {
+      el,
+      startX: e.clientX,
+      startY: e.clientY,
+      left: rect.left,
+      top: rect.top
+    };
+
+    if (el.setPointerCapture) {
+      try { el.setPointerCapture(e.pointerId); } catch {}
+    }
+  });
+
+  el.addEventListener("pointermove", (e) => {
+    if (!editMode || !dragState || dragState.el !== el) return;
+    e.preventDefault();
+
+    const dx = e.clientX - dragState.startX;
+    const dy = e.clientY - dragState.startY;
+    const rect = el.getBoundingClientRect();
+
+    const nextLeft = Math.max(0, Math.min(window.innerWidth - rect.width, dragState.left + dx));
+    const nextTop = Math.max(0, Math.min(window.innerHeight - rect.height, dragState.top + dy));
+
+    el.style.position = "fixed";
+    el.style.left = nextLeft + "px";
+    el.style.top = nextTop + "px";
+    el.style.right = "auto";
+    el.style.bottom = "auto";
+    el.style.margin = "0";
+  });
+
+  function endDrag() {
+    if (!dragState || dragState.el !== el) return;
+    dragState = null;
+  }
+
+  el.addEventListener("pointerup", endDrag);
+  el.addEventListener("pointercancel", endDrag);
+
+  el.addEventListener("click", (e) => {
+    if (!editMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    selectControl(el);
+  });
+}
+
+editBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  if (!editMode) {
+    enterEditMode();
+  } else {
+    exitEditMode();
+  }
+});
+
+sizeSlider.addEventListener("input", () => {
+  const value = +sizeSlider.value;
+  sizeValue.textContent = `${value.toFixed(2)}x`;
+  if (!selectedControl) return;
+
+  selectedControl.dataset.ejsScale = String(value);
+  selectedControl.style.transformOrigin = "center center";
+  selectedControl.style.transform = `scale(${value})`;
+});
+
+saveBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  saveCurrentLayout();
+});
+
+resetBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  resetCurrentCore();
+});
+
+window.addEventListener("load", () => {
+  let tries = 0;
+  const timer = setInterval(() => {
+    tries += 1;
+    const controls = scanControls();
+    if (controls.length) {
+      applySavedLayout();
+      clearInterval(timer);
+    }
+    if (tries > 50) clearInterval(timer);
+  }, 400);
+});
+
+window.addEventListener("resize", () => {
+  if (!editMode) applySavedLayout();
+});
 </script>
 
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
