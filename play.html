@@ -51,12 +51,6 @@ left:15px;
 .fullscreen-btn{
 left:90px;
 }
-
-.edit-mode-active{
-outline:2px dashed rgba(255,255,255,.7) !important;
-outline-offset:4px;
-}
-
 </style>
 </head>
 
@@ -87,57 +81,6 @@ window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
 /* fullscreen toggle */
 
 const fsBtn=document.getElementById("fullscreenBtn");
-
-
-const editBtn = document.getElementById("editBtn");
-let editMode = false;
-
-function getEmulatorControls() {
-  const all = [...document.querySelectorAll("button, div, span, canvas")];
-
-  return all.filter(el => {
-    if (el === editBtn || el === fsBtn) return false;
-    if (el.classList.contains("back-btn")) return false;
-    if (el.classList.contains("control-btn")) return false;
-
-    const txt = (el.textContent || "").trim().toUpperCase();
-    const rect = el.getBoundingClientRect();
-    const style = getComputedStyle(el);
-
-    if (style.display === "none" || style.visibility === "hidden") return false;
-    if (rect.width < 18 || rect.height < 18) return false;
-
-    const isKnownButton = ["A","B","X","Y","L","R","START","SELECT"].includes(txt);
-
-    const looksLikeLeftPad =
-      rect.left < window.innerWidth * 0.35 &&
-      rect.top > window.innerHeight * 0.25 &&
-      rect.width > 50 &&
-      rect.height > 50 &&
-      txt.length === 0;
-
-    return isKnownButton || looksLikeLeftPad;
-  });
-}
-
-function setEditMode(state) {
-  editMode = state;
-  const controls = getEmulatorControls();
-
-  controls.forEach(el => {
-    if (editMode) {
-      el.classList.add("edit-mode-active");
-    } else {
-      el.classList.remove("edit-mode-active");
-    }
-  });
-}
-
-editBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  setEditMode(!editMode);
-});
-
 
 fsBtn.addEventListener("click",async()=>{
 
