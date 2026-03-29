@@ -2,54 +2,37 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Oyun</title>
 
 <style>
-body{
-margin:0;
-background:#000;
-color:#fff;
-font-family:Arial,Helvetica,sans-serif;
-overflow:hidden;
+body{ margin:0; background:#000; color:#fff; font-family:Arial,sans-serif; overflow:hidden; touch-action: none; }
+#game{ width:100%; height:100dvh; }
+
+/* Üst Butonlar */
+.control-btn {
+    position:fixed; top:15px; z-index:99999; background:rgba(0,0,0,.7);
+    color:#fff; border:1px solid rgba(255,255,255,.3); padding:8px;
+    border-radius:50%; cursor:pointer; backdrop-filter:blur(5px);
+}
+.back-btn { left:15px; border-radius:18px; padding:6px 12px; }
+.fullscreen-btn { left:70px; }
+
+/* Düzenleme Butonu (Sağ Üstten İçerde) */
+#editBtn { right:40px; font-size: 20px; border-radius: 8px; }
+
+/* Boyutlandırma Paneli */
+#resizePanel {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.8); padding: 10px; border-radius: 10px;
+    display: none; z-index: 100000; align-items: center; gap: 10px;
+    border: 1px solid #444;
 }
 
-#game{
-width:100%;
-height:100dvh;
-}
-
-/* Butonlar */
-.control-btn{
-position:fixed;
-top:15px;
-z-index:99999;
-background:rgba(0,0,0,.7);
-color:#fff;
-border:1px solid rgba(255,255,255,.3);
-padding:6px 12px;
-border-radius:18px;
-font-size:12px;
-cursor:pointer;
-display:flex;
-align-items:center;
-gap:4px;
-backdrop-filter:blur(5px);
-transition:.2s;
-}
-
-.control-btn:hover{
-background:rgba(50,50,50,.9);
-}
-
-/* geri */
-.back-btn{
-left:15px;
-}
-
-/* fullscreen */
-.fullscreen-btn{
-left:90px;
+/* Düzenleme Modu Belirteci */
+.editing-active .ejs-touch-button {
+    outline: 2px dashed yellow !important;
+    background: rgba(255,255,0,0.2) !important;
 }
 </style>
 </head>
@@ -57,76 +40,156 @@ left:90px;
 <body>
 
 <button class="control-btn back-btn" onclick="history.back()">←</button>
-
 <button id="fullscreenBtn" class="control-btn fullscreen-btn">⛶</button>
+<button id="editBtn" class="control-btn">🎮</button>
+
+<div id="resizePanel">
+    <span>Boyut:</span>
+    <input type="range" id="sizeSlider" min="30" max="150" value="60">
+    <button id="saveBtn" style="background:#007bff; color:white; border:none; padding:5px 15px; border-radius:5px;">Kaydet</button>
+</div>
 
 <div id="game"></div>
 
 <script>
+const params = new URLSearchParams(location.search);
+const core = params.get("core");
+const rom = params.get("rom");
 
-const params=new URLSearchParams(location.search);
-const core=params.get("core");
-const rom=params.get("rom");
-
-if(!core||!rom){
-alert("Hata: Oyun verisi eksik!");
-window.location.href="./";
+if(!core || !rom){
+    alert("Hata: Oyun verisi eksik!");
+    window.location.href="./";
 }
 
-window.EJS_player="#game";
-window.EJS_core=core;
-window.EJS_gameUrl=decodeURIComponent(rom);
-window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
+window.EJS_player = "#game";
+window.EJS_core = core;
+window.EJS_gameUrl = decodeURIComponent(rom);
+window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 
-/* fullscreen toggle */
+// Kayıtlı ayarları yükle
+const storageKey = `ejs_coords_${core}`;
+let customStyles = JSON.parse(localStorage.getItem(storageKey)) || {};
 
-const fsBtn=document.getElementById("fullscreenBtn");
+// EmulatorJS yüklendiğinde ayarları uygula
+window.EJS_onGameStart = () => {
+    applyStoredStyles();
+};
 
-fsBtn.addEventListener("click",async()=>{
+/* DÜZENLEME MANTIĞI */
+let isEditing = false;
+let selectedElement = null;
+const editBtn = document.getElementById("editBtn");
+const resizePanel = document.getElementById("resizePanel");
+const sizeSlider = document.getElementById("sizeSlider");
+const saveBtn = document.getElementById("saveBtn");
 
-if(!document.fullscreenElement){
-
-const el=document.documentElement;
-
-if(el.requestFullscreen){
-await el.requestFullscreen();
-}else if(el.webkitRequestFullscreen){
-await el.webkitRequestFullscreen();
-}
-
-}else{
-
-if(document.exitFullscreen){
-document.exitFullscreen();
-}else if(document.webkitExitFullscreen){
-document.webkitExitFullscreen();
-}
-
-}
-
+editBtn.addEventListener("click", () => {
+    isEditing = !isEditing;
+    document.body.classList.toggle("editing-active", isEditing);
+    editBtn.style.background = isEditing ? "red" : "rgba(0,0,0,.7)";
+    resizePanel.style.display = isEditing ? "flex" : "none";
+    
+    // Düzenleme bittiğinde seçimleri temizle
+    if(!isEditing) {
+        selectedElement = null;
+    }
 });
 
-// Start Game sonrası ilk dokunuşta fullscreen
-document.getElementById("game").addEventListener("click", async () => {
+// Tuşlara tıklama ve sürükleme
+document.addEventListener("pointerdown", (e) => {
+    if(!isEditing) return;
+    
+    const btn = e.target.closest("[id*='ejs-touch']"); // EmulatorJS tuşlarını yakalar
+    if(btn) {
+        selectedElement = btn;
+        let shiftX = e.clientX - btn.getBoundingClientRect().left;
+        let shiftY = e.clientY - btn.getBoundingClientRect().top;
 
-  if (!document.fullscreenElement) {
+        // Mevcut boyutu slider'a aktar
+        sizeSlider.value = parseInt(window.getComputedStyle(btn).width);
 
-    const el = document.documentElement;
+        function moveAt(pageX, pageY) {
+            btn.style.left = (pageX - shiftX) + 'px';
+            btn.style.top = (pageY - shiftY) + 'px';
+            btn.style.right = 'auto'; // Default sağ sabitlemeleri boz
+            btn.style.bottom = 'auto';
+        }
 
-    if (el.requestFullscreen) {
-      await el.requestFullscreen();
-    } 
-    else if (el.webkitRequestFullscreen) {
-      await el.webkitRequestFullscreen();
+        function onPointerMove(event) {
+            moveAt(event.clientX, event.clientY);
+        }
+
+        document.addEventListener("pointermove", onPointerMove);
+
+        document.onpointerup = function() {
+            document.removeEventListener("pointermove", onPointerMove);
+            document.onpointerup = null;
+        };
     }
+});
 
-  }
+// Boyutlandırma
+sizeSlider.addEventListener("input", (e) => {
+    if(selectedElement) {
+        const val = e.target.value + "px";
+        selectedElement.style.width = val;
+        selectedElement.style.height = val;
+    }
+});
 
-}, { once:true });
-  
+// Kaydetme
+saveBtn.addEventListener("click", () => {
+    const buttons = document.querySelectorAll("[id*='ejs-touch']");
+    let layout = {};
+    
+    buttons.forEach(btn => {
+        layout[btn.id] = {
+            top: btn.style.top,
+            left: btn.style.left,
+            width: btn.style.width,
+            height: btn.style.height
+        };
+    });
+
+    localStorage.setItem(storageKey, JSON.stringify(layout));
+    alert("Kontroller bu core için kaydedildi!");
+    location.reload(); // Değişiklikleri tam işlemek için
+});
+
+function applyStoredStyles() {
+    const layout = JSON.parse(localStorage.getItem(storageKey));
+    if(!layout) return;
+
+    // EmulatorJS tuşlarının DOM'a eklenmesini bekle
+    const checkInterval = setInterval(() => {
+        let found = false;
+        for (let id in layout) {
+            const el = document.getElementById(id);
+            if(el) {
+                el.style.top = layout[id].top;
+                el.style.left = layout[id].left;
+                el.style.width = layout[id].width;
+                el.style.height = layout[id].height;
+                el.style.position = "fixed";
+                found = true;
+            }
+        }
+        if(found) clearInterval(checkInterval);
+    }, 500);
+}
+
+/* Fullscreen işlemleri (Mevcut kodunuz) */
+const fsBtn=document.getElementById("fullscreenBtn");
+fsBtn.addEventListener("click",async()=>{
+    const el=document.documentElement;
+    if(!document.fullscreenElement){
+        if(el.requestFullscreen) await el.requestFullscreen();
+    }else{
+        if(document.exitFullscreen) document.exitFullscreen();
+    }
+});
+
 </script>
-
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
-
 </body>
 </html>
