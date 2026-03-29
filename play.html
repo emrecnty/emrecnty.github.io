@@ -22,7 +22,7 @@
       position: fixed;
       top: 15px;
       left: 15px;
-      z-index: 2147483646;
+      z-index: 99999;
       background: rgba(0, 0, 0, 0.7);
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.3);
@@ -43,127 +43,87 @@
 
     .edit-btn,
     .save-btn,
-    .reset-btn,
     .edit-panel {
       display: none;
-      box-sizing: border-box;
     }
 
-    .edit-btn,
-    .save-btn,
-    .reset-btn {
+    body.mobile-edit-ui .edit-btn,
+    body.mobile-edit-ui .save-btn {
       position: fixed;
-      z-index: 2147483647;
+      top: 15px;
+      z-index: 100001;
       border: 1px solid rgba(255,255,255,.28);
       background: rgba(0,0,0,.72);
       color: #fff;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      font-size: 14px;
       cursor: pointer;
       backdrop-filter: blur(6px);
       align-items: center;
       justify-content: center;
-      -webkit-tap-highlight-color: transparent;
     }
 
-    .edit-btn {
-      top: 14px;
-      right: 14px;
-      width: 42px;
-      height: 42px;
-      padding: 0;
-      border-radius: 50%;
+    body.mobile-edit-ui .edit-btn {
+      display: inline-flex;
+      right: 15px;
     }
 
-    .save-btn {
-      top: 14px;
-      right: 64px;
-      height: 40px;
-      padding: 0 14px;
-      border-radius: 10px;
-      font-size: 14px;
+    body.mobile-edit-ui .save-btn {
+      right: 110px;
     }
 
-    .reset-btn {
-      top: 14px;
-      right: 126px;
-      height: 40px;
-      padding: 0 14px;
-      border-radius: 10px;
-      font-size: 14px;
-    }
-
-    .edit-btn .dpad-icon {
-      position: relative;
-      width: 18px;
-      height: 18px;
-      display: block;
-    }
-
-    .edit-btn .dpad-icon::before,
-    .edit-btn .dpad-icon::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(255,255,255,.95);
-      border-radius: 3px;
-    }
-
-    .edit-btn .dpad-icon::before {
-      width: 18px;
-      height: 6px;
-    }
-
-    .edit-btn .dpad-icon::after {
-      width: 6px;
-      height: 18px;
-    }
-
-    .edit-btn.active {
-      background: rgba(0, 122, 255, .78);
-    }
-
-    .save-btn.show,
-    .reset-btn.show {
+    body.mobile-edit-ui .save-btn.show {
       display: inline-flex;
     }
 
-    .edit-panel {
+    body.mobile-edit-ui .edit-panel {
       position: fixed;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2147483647;
-      width: min(340px, calc(100vw - 130px));
+      right: 15px;
+      top: 68px;
+      z-index: 100001;
+      width: min(280px, calc(100vw - 30px));
       background: rgba(0,0,0,.78);
       border: 1px solid rgba(255,255,255,.18);
-      border-radius: 14px;
-      padding: 10px 12px;
+      border-radius: 16px;
+      padding: 14px;
       backdrop-filter: blur(10px);
       box-shadow: 0 12px 30px rgba(0,0,0,.35);
     }
 
-    .edit-panel.show {
+    body.mobile-edit-ui .edit-panel.show {
       display: block;
+    }
+
+    .edit-panel h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .edit-panel .muted {
+      font-size: 12px;
+      color: rgba(255,255,255,.7);
+      line-height: 1.4;
+      margin-bottom: 12px;
     }
 
     .edit-panel label {
       display: block;
-      font-size: 14px;
-      margin: 0;
-      white-space: nowrap;
+      font-size: 13px;
+      margin-bottom: 6px;
     }
 
     .edit-panel input[type="range"] {
       width: 100%;
-      margin: 0;
     }
 
     .edit-panel .row {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin: 0;
+      margin-top: 8px;
     }
 
     .edit-panel .value {
@@ -173,8 +133,19 @@
       color: rgba(255,255,255,.9);
     }
 
+    .edit-panel .reset-btn {
+      margin-top: 12px;
+      width: 100%;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
     .ejs-edit-mode {
-      outline: 2px dashed rgba(255,255,255,.72) !important;
+      outline: 2px dashed rgba(255, 214, 74, .95) !important;
       outline-offset: 4px;
       cursor: move !important;
       touch-action: none !important;
@@ -182,13 +153,13 @@
     }
 
     .ejs-edit-selected {
-      outline: 3px dashed rgba(90, 200, 250, .98) !important;
+      outline: 3px solid rgba(90, 200, 250, .95) !important;
       outline-offset: 5px;
     }
 
     .ejs-edit-badge {
       position: fixed;
-      z-index: 2147483647;
+      z-index: 100002;
       pointer-events: none;
       background: rgba(0,0,0,.82);
       color: #fff;
@@ -205,16 +176,22 @@
 </head>
 <body>
   <button class="back-btn" onclick="history.back()">← Geri</button>
-  <button id="editControlsBtn" class="edit-btn" type="button" aria-label="Kontrolleri düzenle"><span class="dpad-icon" aria-hidden="true"></span></button>
+  <button id="editControlsBtn" class="edit-btn" type="button">Düzenle</button>
   <button id="saveControlsBtn" class="save-btn" type="button">Save</button>
-  <button id="resetControlsBtn" class="reset-btn" type="button">Reset</button>
 
   <div id="editPanel" class="edit-panel">
+    <h3>Kontrol Düzeni</h3>
+    <div class="muted">
+      Düzenle açıkken bir tuşa dokunup sürükle. Boyutu değiştirmek için önce o tuşu seç.
+    </div>
+
+    <label for="sizeSlider">Boyut</label>
     <div class="row">
-      <label for="sizeSlider">Size:</label>
       <input id="sizeSlider" type="range" min="0.60" max="2.20" step="0.05" value="1">
       <div id="sizeValue" class="value">1.00x</div>
     </div>
+
+    <button id="resetControlsBtn" class="reset-btn" type="button">Kaydı Sıfırla</button>
   </div>
 
   <div id="game"></div>
@@ -243,6 +220,7 @@
 
       try {
         const elem = document.documentElement;
+
         if (elem.requestFullscreen) {
           await elem.requestFullscreen();
         } else if (elem.webkitRequestFullscreen) {
@@ -260,7 +238,11 @@
     document.addEventListener("click", handleMobileView, { once: true });
     document.addEventListener("touchstart", handleMobileView, { once: true });
 
-    const STORAGE_KEY = `ejs_control_layout_v1:${core}`;
+    if (isMobileDevice()) {
+      document.body.classList.add("mobile-edit-ui");
+    }
+
+    const STORAGE_KEY = `ejs_control_layout_v1:${core}:${decodeURIComponent(rom)}`;
 
     const editBtn = document.getElementById("editControlsBtn");
     const saveBtn = document.getElementById("saveControlsBtn");
@@ -276,16 +258,6 @@
     let badgeMap = new Map();
     let bindDone = false;
 
-    function setMobileUiVisibility() {
-      const visible = isMobileDevice();
-      editBtn.style.display = visible ? "inline-flex" : "none";
-      if (!visible) {
-        saveBtn.style.display = "none";
-        resetBtn.style.display = "none";
-        editPanel.style.display = "none";
-      }
-    }
-
     function loadLayout() {
       try {
         return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
@@ -298,24 +270,32 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
     }
 
+    function clearLayout() {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+
     function clamp(num, min, max) {
       return Math.max(min, Math.min(max, num));
     }
 
     function pxToVw(px) {
-      return +(px / window.innerWidth * 100).toFixed(3);
+      const game = document.getElementById("game");
+      return +(px / game.clientWidth * 100).toFixed(3);
     }
 
     function pxToVh(px) {
-      return +(px / window.innerHeight * 100).toFixed(3);
+      const game = document.getElementById("game");
+      return +(px / game.clientHeight * 100).toFixed(3);
     }
 
     function vwToPx(vw) {
-      return (vw / 100) * window.innerWidth;
+      const game = document.getElementById("game");
+      return (vw / 100) * game.clientWidth;
     }
 
     function vhToPx(vh) {
-      return (vh / 100) * window.innerHeight;
+      const game = document.getElementById("game");
+      return (vh / 100) * game.clientHeight;
     }
 
     function getTextKey(el) {
@@ -372,7 +352,6 @@
         const key = getTextKey(el);
         if (!key) return;
         if (!isVisibleControl(el)) return;
-        if (el === editBtn || el === saveBtn || el === editPanel || el.closest("#editPanel")) return;
 
         const rect = el.getBoundingClientRect();
         if (rect.left < 0 || rect.top < 0) return;
@@ -382,7 +361,7 @@
         used.add(el);
       });
 
-      const dpad = detectDpadCandidate(els.filter(el => !used.has(el) && el !== editBtn && el !== saveBtn && el !== editPanel && !el.closest("#editPanel")));
+      const dpad = detectDpadCandidate(els.filter(el => !used.has(el) && !el.closest("#editPanel")));
       if (dpad) {
         dpad.dataset.ejsControlKey = "dpad";
         controls.push(dpad);
@@ -407,6 +386,7 @@
 
     function getBadge(el) {
       if (badgeMap.has(el)) return badgeMap.get(el);
+
       const badge = document.createElement("div");
       badge.className = "ejs-edit-badge";
       document.body.appendChild(badge);
@@ -426,7 +406,9 @@
     }
 
     function hideBadges() {
-      badgeMap.forEach(badge => badge.style.display = "none");
+      badgeMap.forEach(badge => {
+        badge.style.display = "none";
+      });
     }
 
     function saveElementState(el) {
@@ -456,12 +438,14 @@
       el.style.transformOrigin = "center center";
       el.style.transform = `scale(${data.scale || 1})`;
       el.dataset.ejsScale = String(data.scale || 1);
+
       updateBadge(el);
     }
 
     function applySavedLayout() {
       const saved = loadLayout();
       const controls = findControls();
+
       controls.forEach(el => {
         const key = el.dataset.ejsControlKey;
         if (!key || !saved[key]) return;
@@ -477,13 +461,9 @@
       if (!selectedControl) {
         sizeSlider.value = "1";
         sizeValue.textContent = "1.00x";
-        editPanel.classList.remove("show");
-        editPanel.style.display = "none";
         return;
       }
 
-      editPanel.classList.add("show");
-      editPanel.style.display = "block";
       selectedControl.classList.add("ejs-edit-selected");
       const scale = +(selectedControl.dataset.ejsScale || "1");
       sizeSlider.value = scale.toFixed(2);
@@ -493,8 +473,10 @@
 
     function startDrag(el, e) {
       if (!editMode || !isMobileDevice()) return;
+
       e.preventDefault();
       e.stopPropagation();
+
       selectControl(el);
 
       const rect = el.getBoundingClientRect();
@@ -513,10 +495,12 @@
 
     function moveDrag(e) {
       if (!editMode || !dragState || !isMobileDevice()) return;
+
       e.preventDefault();
 
       const dx = e.clientX - dragState.startX;
       const dy = e.clientY - dragState.startY;
+
       const el = dragState.el;
       const rect = el.getBoundingClientRect();
 
@@ -546,12 +530,12 @@
       if (el.dataset.ejsEditorBound === "1") return;
       el.dataset.ejsEditorBound = "1";
 
-      el.addEventListener("pointerdown", e => {
+      el.addEventListener("pointerdown", (e) => {
         if (!editMode || !isMobileDevice()) return;
         startDrag(el, e);
       });
 
-      el.addEventListener("pointermove", e => {
+      el.addEventListener("pointermove", (e) => {
         if (!editMode || !dragState || dragState.el !== el || !isMobileDevice()) return;
         moveDrag(e);
       });
@@ -566,7 +550,7 @@
         endDrag();
       });
 
-      el.addEventListener("click", e => {
+      el.addEventListener("click", (e) => {
         if (!editMode || !isMobileDevice()) return;
         e.preventDefault();
         e.stopPropagation();
@@ -577,23 +561,24 @@
     function bindControlsOnceReady() {
       const controls = findControls();
       if (!controls.length) return false;
+
       controls.forEach(bindControl);
 
       if (!bindDone) {
         applySavedLayout();
         bindDone = true;
       }
+
       return true;
     }
 
     function enterEditMode() {
       if (!isMobileDevice()) return;
+
       editMode = true;
-      editBtn.classList.add("active");
+      editBtn.textContent = "Düzenleme Açık";
       saveBtn.classList.add("show");
-      resetBtn.classList.add("show");
-      saveBtn.style.display = "inline-flex";
-      resetBtn.style.display = "inline-flex";
+      editPanel.classList.add("show");
 
       const controls = findControls();
       controls.forEach(el => {
@@ -601,17 +586,17 @@
         el.classList.add("ejs-edit-mode");
         updateBadge(el);
       });
+
+      if (!selectedControl && controls.length) {
+        selectControl(controls[0]);
+      }
     }
 
     function exitEditMode() {
       editMode = false;
-      editBtn.classList.remove("active");
+      editBtn.textContent = "Düzenle";
       saveBtn.classList.remove("show");
-      resetBtn.classList.remove("show");
-      saveBtn.style.display = "none";
-      resetBtn.style.display = "none";
       editPanel.classList.remove("show");
-      editPanel.style.display = "none";
 
       const controls = findControls();
       controls.forEach(el => {
@@ -627,38 +612,34 @@
     function saveAllControls() {
       const current = loadLayout();
       const controls = findControls();
+
       controls.forEach(saveElementState);
-      persistLayout({ ...current, ...saveQueue });
+
+      const merged = { ...current, ...saveQueue };
+      persistLayout(merged);
       exitEditMode();
+      alert("Kontrol düzeni kaydedildi.");
     }
 
-    function resetAllControls() {
-      localStorage.removeItem(STORAGE_KEY);
+    function resetControls() {
+      clearLayout();
       saveQueue = {};
-      const controls = findControls();
-      controls.forEach(el => {
-        el.style.position = "";
-        el.style.left = "";
-        el.style.top = "";
-        el.style.right = "";
-        el.style.bottom = "";
-        el.style.margin = "";
-        el.style.zIndex = "";
-        el.style.transformOrigin = "";
-        el.style.transform = "";
-        delete el.dataset.ejsScale;
-      });
-      exitEditMode();
+      alert("Kayıtlı kontrol düzeni silindi. Sayfa yeniden yükleniyor.");
+      location.reload();
     }
 
     sizeSlider.addEventListener("input", () => {
       if (!isMobileDevice()) return;
+
       const value = +sizeSlider.value;
       sizeValue.textContent = `${value.toFixed(2)}x`;
+
       if (!selectedControl) return;
+
       selectedControl.dataset.ejsScale = String(value);
       selectedControl.style.transformOrigin = "center center";
       selectedControl.style.transform = `scale(${value})`;
+
       saveElementState(selectedControl);
       updateBadge(selectedControl);
     });
@@ -676,51 +657,30 @@
 
     resetBtn.addEventListener("click", () => {
       if (!isMobileDevice()) return;
-      resetAllControls();
+      resetControls();
     });
-
-    function syncOverlayHost() {
-      const host = document.fullscreenElement || document.webkitFullscreenElement || document.body;
-      [editBtn, saveBtn, resetBtn, editPanel].forEach(el => {
-        if (el.parentElement !== host) host.appendChild(el);
-      });
-      badgeMap.forEach(badge => {
-        if (badge.parentElement !== host) host.appendChild(badge);
-      });
-      setMobileUiVisibility();
-      if (editMode) {
-        saveBtn.style.display = "inline-flex";
-        resetBtn.style.display = "inline-flex";
-      }
-    }
 
     function waitForEmulatorControls() {
       let tries = 0;
       const timer = setInterval(() => {
         tries += 1;
-        syncOverlayHost();
         const ok = bindControlsOnceReady();
-        if (ok || tries > 40) clearInterval(timer);
+
+        if (ok || tries > 40) {
+          clearInterval(timer);
+        }
       }, 500);
     }
 
     window.addEventListener("resize", () => {
-      setMobileUiVisibility();
-      syncOverlayHost();
       if (!bindDone || !isMobileDevice()) return;
       applySavedLayout();
       findControls().forEach(updateBadge);
     });
 
-    document.addEventListener("fullscreenchange", syncOverlayHost);
-    document.addEventListener("webkitfullscreenchange", syncOverlayHost);
-
     window.addEventListener("load", () => {
-      setMobileUiVisibility();
       if (!isMobileDevice()) return;
-      syncOverlayHost();
       waitForEmulatorControls();
-      setInterval(syncOverlayHost, 1000);
     });
   </script>
 
