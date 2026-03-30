@@ -208,13 +208,15 @@ fsBtn.addEventListener("click", async (e) => {
   }
 });
 
-function isMobileDevice() {
-  return window.matchMedia("(pointer: coarse)").matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+function isMobile() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-if (isMobileDevice()) {
+if (isMobile()) {
   gameEl.addEventListener("touchstart", async () => {
-    if (!document.fullscreenElement) await enterFullscreen();
+    if (!document.fullscreenElement) {
+      await enterFullscreen();
+    }
   }, { once: true });
 }
 
