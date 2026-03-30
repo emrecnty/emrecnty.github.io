@@ -177,6 +177,31 @@ window.EJS_core = core;
 window.EJS_gameUrl = decodeURIComponent(rom);
 window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 
+// --- SİLAH VE MOUSE AYARLARI (KESİN ÇÖZÜM) ---
+
+window.EJS_mouse = true;           // PC'de fareyi aktif eder
+window.EJS_pointerLock = true;     // Fareyi oyun ekranına kilitler
+window.EJS_lightgun = true;        // Arcade silahlarını aktif eder
+window.EJS_zapper = true;          // NES silahını aktif eder
+
+// Duck Hunt için silahı 2. porta (index 1) takıyoruz
+if (core === "nes" || core === "fceumm") {
+    window.EJS_gamepadIndex = 1; 
+}
+
+// Mobilde ekrana dokununca "Ateş Et" komutu gönderir
+if (isMobile()) {
+    window.EJS_touch_lightgun = true;
+}
+
+// Tarayıcı güvenliğini aşmak için: Oyun başladığında odağı oyuna ver
+window.EJS_onGameStart = function() {
+    console.log("Oyun başladı, silahlar dolduruldu!");
+    if(window.EJS_emulator) {
+        window.EJS_emulator.focus();
+    }
+};
+
 const fsBtn = document.getElementById("fullscreenBtn");
 const gameEl = document.getElementById("game");
 
