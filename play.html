@@ -177,22 +177,23 @@ window.EJS_core = core;
 window.EJS_gameUrl = decodeURIComponent(rom);
 window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
 
-// sistem bazlı silah ayarı
+// --- SİLAH VE KONTROL AYARLARI BAŞLANGIÇ ---
+window.EJS_mouse = true;       // PC'de fareyi aktif eder
+window.EJS_touch = true;       // Mobilde dokunmatik desteğini açar
+window.EJS_lightgun = true;    // Arcade/MAME silah desteği
+window.EJS_zapper = true;      // NES Zapper desteği
+window.EJS_pointerLock = true; // PC'de farenin ekrana kilitlenmesini sağlar
 
-// NES zapper
+// NES (Duck Hunt vb.) için silahı 2. porta takar
 if (core === "fceumm" || core === "nes") {
-  window.EJS_zapper = true;
+    window.EJS_gamepadIndex = 1; 
 }
 
-// Arcade lightgun
-if (
-  core === "mame" ||
-  core === "mame2003" ||
-  core === "mame2003_plus" ||
-  core === "fbneo"
-) {
-  window.EJS_lightgun = true;
+// Mobilde dokunulan yeri "ateş etme" olarak algılatır
+if (isMobile()) {
+    window.EJS_touch_lightgun = true;
 }
+// --- SİLAH VE KONTROL AYARLARI BİTİŞ ---
 
 const fsBtn = document.getElementById("fullscreenBtn");
 const gameEl = document.getElementById("game");
