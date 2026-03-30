@@ -213,11 +213,35 @@ function isMobile() {
 }
 
 if (isMobile()) {
-  gameEl.addEventListener("touchstart", async () => {
-    if (!document.fullscreenElement) {
+  const handleMobileStartFullscreen = async (e) => {
+    if (document.fullscreenElement) return;
+
+    const target = e.target;
+    if (!target) return;
+
+    const text = (target.textContent || "").trim().toLowerCase();
+    const aria = (target.getAttribute("aria-label") || "").trim().toLowerCase();
+    const title = (target.getAttribute("title") || "").trim().toLowerCase();
+
+    const isStartButton =
+      text.includes("start game") ||
+      text.includes("oyunu başlat") ||
+      aria.includes("start game") ||
+      aria.includes("oyunu başlat") ||
+      title.includes("start game") ||
+      title.includes("oyunu başlat");
+
+    if (!isStartButton) return;
+
+    try {
       await enterFullscreen();
+    } catch (err) {
+      console.warn("Mobil fullscreen açılamadı:", err);
     }
-  }, { once: true });
+  };
+
+  document.addEventListener("click", handleMobileStartFullscreen, true);
+  document.addEventListener("touchend", handleMobileStartFullscreen, true);
 }
 
 const editBtn = document.getElementById("editBtn");
