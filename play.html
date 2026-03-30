@@ -208,13 +208,15 @@ fsBtn.addEventListener("click", async (e) => {
   }
 });
 
-gameEl.addEventListener("click", async () => {
-  if (!document.fullscreenElement) await enterFullscreen();
-}, { once: true });
+function isMobileDevice() {
+  return window.matchMedia("(pointer: coarse)").matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
 
-gameEl.addEventListener("touchstart", async () => {
-  if (!document.fullscreenElement) await enterFullscreen();
-}, { once: true });
+if (isMobileDevice()) {
+  gameEl.addEventListener("touchstart", async () => {
+    if (!document.fullscreenElement) await enterFullscreen();
+  }, { once: true });
+}
 
 const editBtn = document.getElementById("editBtn");
 const editPanel = document.getElementById("editPanel");
