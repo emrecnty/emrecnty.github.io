@@ -97,8 +97,8 @@
 
     .grid{
       display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
-      gap:16px;
+      grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));
+      gap:18px;
     }
 
     .card{
@@ -108,25 +108,31 @@
       color:inherit;
       border:1px solid var(--border);
       background:var(--panel);
-      border-radius:16px;
+      border-radius:20px;
       overflow:hidden;
       box-shadow:var(--shadow);
-      transition:.18s ease;
-      min-height:320px;
+      transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+      min-height:0;
     }
 
     .card:hover{
-      transform:translateY(-2px);
+      transform:translateY(-4px);
       border-color:#bdb4a6;
+      box-shadow:0 14px 34px rgba(60,52,44,.12);
+    }
+
+    .card:hover .thumb{
+      transform:scale(1.03);
     }
 
     .thumb{
       width:100%;
-      aspect-ratio: 4 / 3;
+      aspect-ratio: 3 / 4;
       background:#ece7de;
       border-bottom:1px solid var(--border);
       object-fit:cover;
       display:block;
+      transition:transform .25s ease;
     }
 
     .thumb.placeholder{
@@ -140,27 +146,22 @@
 
     .card-body{
       display:flex;
-      flex-direction:column;
-      gap:8px;
-      padding:12px;
-      min-height:0;
-      flex:1;
+      align-items:center;
+      justify-content:center;
+      padding:12px 14px;
+      min-height:56px;
     }
 
     .game-name{
+      width:100%;
       font-size:14px;
-      line-height:1.4;
+      line-height:1.2;
       font-weight:700;
       margin:0;
-      word-break:break-word;
-    }
-
-    .game-rom{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.35;
-      word-break:break-word;
-      margin-top:auto;
+      text-align:center;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .empty, .loading, .error{
@@ -368,11 +369,7 @@
         const title = document.createElement("p");
         title.className = "game-name";
         title.textContent = game.name;
-        const rom = document.createElement("div");
-        rom.className = "game-rom";
-        rom.textContent = game.rom;
         body.appendChild(title);
-        body.appendChild(rom);
         card.appendChild(img);
         card.appendChild(body);
         grid.appendChild(card);
