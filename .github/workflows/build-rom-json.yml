@@ -32,7 +32,7 @@ jobs:
           const fs = require('fs');
           const path = require('path');
 
-          const systems = ['gb', 'nes', 'snes', 'genesis', 'mame2003'];
+          const systems = ['gb', 'nes', 'snes', 'genesis', 'sms', 'mame2003'];
           const romsRoot = path.join(process.cwd(), 'roms');
           const dataRoot = path.join(process.cwd(), 'data');
 
